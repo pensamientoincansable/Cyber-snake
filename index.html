@@ -695,52 +695,228 @@
             const baseRadius = 0.35 * sizeFactor;
 
             if (isHead) {
-                // Snake head - more organic shape
-                const headGeom = new THREE.SphereGeometry(0.4, 16, 12);
-                headGeom.scale(1.2, 0.7, 1.4);
-                const headMat = new THREE.MeshStandardMaterial({
-                    color: 0x00ffff,
-                    metalness: 0.7,
-                    roughness: 0.2,
-                    emissive: 0x00ffff,
-                    emissiveIntensity: 0.3
-                });
-                const head = new THREE.Mesh(headGeom, headMat);
-                head.position.y = 0.25;
-                group.add(head);
-
-                // Eyes
-                const eyeGeom = new THREE.SphereGeometry(0.1, 12, 12);
-                const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+                // ===== CABEZA DE SERPIENTE ESTILO KAA =====
                 
-                const leftEye = new THREE.Mesh(eyeGeom, eyeMat);
-                leftEye.position.set(0.2, 0.35, 0.35);
-                group.add(leftEye);
-
-                const rightEye = new THREE.Mesh(eyeGeom, eyeMat);
-                rightEye.position.set(-0.2, 0.35, 0.35);
-                group.add(rightEye);
-
-                // Tongue
-                const tongueGeom = new THREE.ConeGeometry(0.03, 0.3, 4);
-                const tongueMat = new THREE.MeshBasicMaterial({ color: 0xff3366 });
-                const tongue = new THREE.Mesh(tongueGeom, tongueMat);
-                tongue.rotation.x = Math.PI / 2;
-                tongue.position.set(0, 0.2, 0.55);
-                tongue.userData.isTongue = true;
-                group.add(tongue);
-
-                // Cyber antenna
-                const antennaGeom = new THREE.CylinderGeometry(0.02, 0.04, 0.3, 8);
+                // Cabeza principal - forma triangular/ovalada de serpiente
+                const headGroup = new THREE.Group();
+                
+                // Base de la cabeza (forma de gota alargada)
+                const headGeom = new THREE.SphereGeometry(0.38, 24, 18);
+                headGeom.scale(0.9, 0.55, 1.3); // Más alargada y aplanada
+                const headMat = new THREE.MeshStandardMaterial({
+                    color: 0x00ddaa,
+                    metalness: 0.4,
+                    roughness: 0.3,
+                    emissive: 0x00ffcc,
+                    emissiveIntensity: 0.15
+                });
+                const headBase = new THREE.Mesh(headGeom, headMat);
+                headBase.position.y = 0.22;
+                headGroup.add(headBase);
+                
+                // Hocico puntiagudo
+                const snoutGeom = new THREE.ConeGeometry(0.22, 0.35, 16);
+                snoutGeom.scale(0.8, 1, 1.2);
+                const snoutMat = new THREE.MeshStandardMaterial({
+                    color: 0x00eebb,
+                    metalness: 0.3,
+                    roughness: 0.4,
+                    emissive: 0x00ffdd,
+                    emissiveIntensity: 0.1
+                });
+                const snout = new THREE.Mesh(snoutGeom, snoutMat);
+                snout.rotation.x = Math.PI / 2;
+                snout.position.set(0, 0.18, 0.42);
+                headGroup.add(snout);
+                
+                // Cejas/crestas sobre los ojos (aspecto amenazante)
+                const browGeom = new THREE.BoxGeometry(0.18, 0.06, 0.12);
+                const browMat = new THREE.MeshStandardMaterial({
+                    color: 0x008866,
+                    metalness: 0.5,
+                    roughness: 0.3
+                });
+                
+                const leftBrow = new THREE.Mesh(browGeom, browMat);
+                leftBrow.position.set(0.18, 0.38, 0.15);
+                leftBrow.rotation.z = -0.3;
+                leftBrow.rotation.y = 0.2;
+                headGroup.add(leftBrow);
+                
+                const rightBrow = new THREE.Mesh(browGeom, browMat);
+                rightBrow.position.set(-0.18, 0.38, 0.15);
+                rightBrow.rotation.z = 0.3;
+                rightBrow.rotation.y = -0.2;
+                headGroup.add(rightBrow);
+                
+                // ===== OJOS HIPNÓTICOS ESTILO KAA =====
+                const eyeRadius = 0.14;
+                
+                // Función para crear un ojo hipnótico
+                function createHypnoticEye(xPos) {
+                    const eyeGroup = new THREE.Group();
+                    
+                    // Globo ocular (esfera blanca/amarillenta grande)
+                    const eyeballGeom = new THREE.SphereGeometry(eyeRadius, 32, 32);
+                    const eyeballMat = new THREE.MeshStandardMaterial({
+                        color: 0xffffaa,
+                        metalness: 0.1,
+                        roughness: 0.2,
+                        emissive: 0xffff00,
+                        emissiveIntensity: 0.3
+                    });
+                    const eyeball = new THREE.Mesh(eyeballGeom, eyeballMat);
+                    eyeGroup.add(eyeball);
+                    
+                    // Espirales hipnóticas (múltiples anillos concéntricos)
+                    const spiralColors = [0xff00ff, 0x00ffff, 0xff00ff, 0x00ffff, 0xff00ff];
+                    for (let i = 0; i < 5; i++) {
+                        const ringRadius = eyeRadius * (0.9 - i * 0.15);
+                        const spiralGeom = new THREE.TorusGeometry(ringRadius, 0.012, 8, 32);
+                        const spiralMat = new THREE.MeshBasicMaterial({
+                            color: spiralColors[i],
+                            transparent: true,
+                            opacity: 0.9 - i * 0.1
+                        });
+                        const spiral = new THREE.Mesh(spiralGeom, spiralMat);
+                        spiral.position.z = 0.01 + i * 0.008;
+                        spiral.userData.spiralIndex = i;
+                        spiral.userData.isSpiral = true;
+                        eyeGroup.add(spiral);
+                    }
+                    
+                    // Pupila central (punto negro con brillo)
+                    const pupilGeom = new THREE.CircleGeometry(0.035, 16);
+                    const pupilMat = new THREE.MeshBasicMaterial({ 
+                        color: 0x000000,
+                        side: THREE.DoubleSide
+                    });
+                    const pupil = new THREE.Mesh(pupilGeom, pupilMat);
+                    pupil.position.z = 0.06;
+                    eyeGroup.add(pupil);
+                    
+                    // Brillo en la pupila
+                    const glintGeom = new THREE.CircleGeometry(0.015, 8);
+                    const glintMat = new THREE.MeshBasicMaterial({ 
+                        color: 0xffffff 
+                    });
+                    const glint = new THREE.Mesh(glintGeom, glintMat);
+                    glint.position.set(0.015, 0.015, 0.065);
+                    eyeGroup.add(glint);
+                    
+                    // Borde del ojo (párpado sutil)
+                    const lidGeom = new THREE.TorusGeometry(eyeRadius * 1.05, 0.02, 8, 32, Math.PI);
+                    const lidMat = new THREE.MeshStandardMaterial({
+                        color: 0x006644,
+                        metalness: 0.3,
+                        roughness: 0.5
+                    });
+                    const lid = new THREE.Mesh(lidGeom, lidMat);
+                    lid.rotation.z = Math.PI;
+                    lid.position.z = 0.01;
+                    eyeGroup.add(lid);
+                    
+                    eyeGroup.position.set(xPos, 0.32, 0.22);
+                    eyeGroup.rotation.y = xPos > 0 ? 0.25 : -0.25;
+                    eyeGroup.userData.isHypnoticEye = true;
+                    
+                    return eyeGroup;
+                }
+                
+                // Crear ambos ojos
+                const leftEye = createHypnoticEye(0.2);
+                const rightEye = createHypnoticEye(-0.2);
+                headGroup.add(leftEye);
+                headGroup.add(rightEye);
+                
+                // ===== LENGUA BÍFIDA =====
+                const tongueGroup = new THREE.Group();
+                
+                // Base de la lengua
+                const tongueBaseGeom = new THREE.CylinderGeometry(0.025, 0.02, 0.25, 8);
+                const tongueMat = new THREE.MeshBasicMaterial({ 
+                    color: 0xff3366,
+                    side: THREE.DoubleSide
+                });
+                const tongueBase = new THREE.Mesh(tongueBaseGeom, tongueMat);
+                tongueBase.rotation.x = Math.PI / 2;
+                tongueBase.position.z = 0.12;
+                tongueGroup.add(tongueBase);
+                
+                // Bifurcación izquierda
+                const forkGeom = new THREE.ConeGeometry(0.018, 0.12, 6);
+                const leftFork = new THREE.Mesh(forkGeom, tongueMat);
+                leftFork.rotation.x = Math.PI / 2;
+                leftFork.rotation.z = 0.4;
+                leftFork.position.set(0.04, 0, 0.28);
+                tongueGroup.add(leftFork);
+                
+                // Bifurcación derecha
+                const rightFork = new THREE.Mesh(forkGeom, tongueMat);
+                rightFork.rotation.x = Math.PI / 2;
+                rightFork.rotation.z = -0.4;
+                rightFork.position.set(-0.04, 0, 0.28);
+                tongueGroup.add(rightFork);
+                
+                tongueGroup.position.set(0, 0.15, 0.45);
+                tongueGroup.userData.isTongue = true;
+                headGroup.add(tongueGroup);
+                
+                // ===== ESCAMAS DECORATIVAS EN LA CABEZA =====
+                const scaleGeom = new THREE.CircleGeometry(0.04, 6);
+                const scaleMat = new THREE.MeshStandardMaterial({
+                    color: 0x00aa88,
+                    metalness: 0.6,
+                    roughness: 0.3,
+                    side: THREE.DoubleSide
+                });
+                
+                // Escamas en la parte superior
+                for (let i = 0; i < 5; i++) {
+                    const scale = new THREE.Mesh(scaleGeom, scaleMat);
+                    scale.position.set(
+                        (Math.random() - 0.5) * 0.3,
+                        0.35 + Math.random() * 0.1,
+                        -0.1 - i * 0.08
+                    );
+                    scale.rotation.x = -Math.PI / 2 + Math.random() * 0.3;
+                    scale.rotation.z = Math.random() * Math.PI;
+                    headGroup.add(scale);
+                }
+                
+                // ===== FOSAS NASALES =====
+                const nostrilGeom = new THREE.CircleGeometry(0.025, 8);
+                const nostrilMat = new THREE.MeshBasicMaterial({ color: 0x003322 });
+                
+                const leftNostril = new THREE.Mesh(nostrilGeom, nostrilMat);
+                leftNostril.position.set(0.08, 0.22, 0.52);
+                leftNostril.rotation.y = 0.3;
+                headGroup.add(leftNostril);
+                
+                const rightNostril = new THREE.Mesh(nostrilGeom, nostrilMat);
+                rightNostril.position.set(-0.08, 0.22, 0.52);
+                rightNostril.rotation.y = -0.3;
+                headGroup.add(rightNostril);
+                
+                // ===== ANTENA CYBER (pequeña y sutil) =====
+                const antennaGeom = new THREE.CylinderGeometry(0.015, 0.025, 0.18, 8);
                 const antennaMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
                 const antenna = new THREE.Mesh(antennaGeom, antennaMat);
-                antenna.position.set(0, 0.55, -0.1);
-                group.add(antenna);
-
-                const antennaTip = new THREE.SphereGeometry(0.06, 8, 8);
-                const antennaTipMesh = new THREE.Mesh(antennaTip, new THREE.MeshBasicMaterial({ color: 0xff00ff }));
-                antennaTipMesh.position.set(0, 0.72, -0.1);
-                group.add(antennaTipMesh);
+                antenna.position.set(0, 0.48, -0.15);
+                headGroup.add(antenna);
+                
+                const antennaTipGeom = new THREE.SphereGeometry(0.04, 8, 8);
+                const antennaTipMat = new THREE.MeshBasicMaterial({ 
+                    color: 0xff00ff,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                const antennaTip = new THREE.Mesh(antennaTipGeom, antennaTipMat);
+                antennaTip.position.set(0, 0.58, -0.15);
+                antennaTip.userData.isAntennaTip = true;
+                headGroup.add(antennaTip);
+                
+                group.add(headGroup);
 
             } else {
                 // Body segments
@@ -984,6 +1160,9 @@
             snake.push(createSnakeSegment(startX - 1, startZ, 1, 3));
             snake.push(createSnakeSegment(startX - 2, startZ, 2, 3));
 
+            // Orientar la cabeza hacia la dirección inicial (derecha)
+            snake[0].rotation.y = Math.PI / 2;
+
             createNanobot();
             gameRunning = true;
             lastMoveTime = Date.now();
@@ -1057,9 +1236,17 @@
                 snake.push(createSnakeSegment(positions[i].x, positions[i].z, i, newLength));
             }
 
-            // Update head rotation
-            const angle = Math.atan2(direction.y, direction.x);
-            snake[0].rotation.y = -angle;
+            // Update head rotation based on direction
+            // La cabeza está construida mirando hacia +Z, así que ajustamos la rotación
+            if (direction.x === 1) {
+                snake[0].rotation.y = Math.PI / 2;  // Derecha
+            } else if (direction.x === -1) {
+                snake[0].rotation.y = -Math.PI / 2; // Izquierda
+            } else if (direction.y === -1) {
+                snake[0].rotation.y = Math.PI;      // Arriba (hacia -Z en pantalla)
+            } else if (direction.y === 1) {
+                snake[0].rotation.y = 0;            // Abajo (hacia +Z en pantalla)
+            }
 
             document.getElementById('length').textContent = snake.length;
         }
@@ -1095,6 +1282,17 @@
                 const newZ = Math.floor(pos.relZ * gridHeight);
                 snake.push(createSnakeSegment(newX, newZ, i, snakePositions.length));
             });
+
+            // Mantener la orientación de la cabeza según la dirección actual
+            if (direction.x === 1) {
+                snake[0].rotation.y = Math.PI / 2;
+            } else if (direction.x === -1) {
+                snake[0].rotation.y = -Math.PI / 2;
+            } else if (direction.y === -1) {
+                snake[0].rotation.y = Math.PI;
+            } else if (direction.y === 1) {
+                snake[0].rotation.y = 0;
+            }
 
             // Reposition existing obstacles
             const oldObstaclePositions = obstacles.map(obs => ({
@@ -1248,12 +1446,41 @@
 
             // Animate snake
             if (snake.length > 0) {
-                snake[0].children.forEach(child => {
-                    if (child.userData.isTongue) {
-                        child.position.z = 0.55 + Math.sin(time * 10) * 0.1;
-                    }
-                });
+                // Animar la cabeza (primer segmento)
+                const headGroup = snake[0].children[0];
+                if (headGroup && headGroup.children) {
+                    headGroup.children.forEach(child => {
+                        // Animar lengua bífida (movimiento de entrada/salida)
+                        if (child.userData && child.userData.isTongue) {
+                            child.position.z = 0.45 + Math.sin(time * 12) * 0.15;
+                            child.rotation.y = Math.sin(time * 8) * 0.1;
+                        }
+                        
+                        // Animar ojos hipnóticos
+                        if (child.userData && child.userData.isHypnoticEye) {
+                            child.children.forEach(eyePart => {
+                                if (eyePart.userData && eyePart.userData.isSpiral) {
+                                    // Rotar espirales en direcciones alternadas
+                                    const dir = eyePart.userData.spiralIndex % 2 === 0 ? 1 : -1;
+                                    eyePart.rotation.z = time * 3 * dir + eyePart.userData.spiralIndex * 0.5;
+                                    
+                                    // Pulsar tamaño
+                                    const pulse = 1 + Math.sin(time * 4 + eyePart.userData.spiralIndex) * 0.1;
+                                    eyePart.scale.setScalar(pulse);
+                                }
+                            });
+                        }
+                        
+                        // Animar punta de antena
+                        if (child.userData && child.userData.isAntennaTip) {
+                            child.material.opacity = 0.5 + Math.sin(time * 6) * 0.4;
+                            const glowScale = 1 + Math.sin(time * 8) * 0.3;
+                            child.scale.setScalar(glowScale);
+                        }
+                    });
+                }
 
+                // Animar cuerpo (movimiento ondulatorio)
                 snake.forEach((seg, i) => {
                     if (i > 0) {
                         seg.position.y = Math.sin(time * 5 + i * 0.4) * 0.05;
