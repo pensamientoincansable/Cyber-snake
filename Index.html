@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CYBER SNAKE - Nanobot Hunter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .hud-panel {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 100, 150, 0.25));
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 8px;
+            padding: 8px 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .score-display {
+            color: #0ff;
+            font-size: 18px;
+            font-weight: 700;
+            text-shadow: 0 0 10px #0ff;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .score-label {
+            color: rgba(0, 255, 255, 0.7);
+            font-size: 9px;
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+        }
+
+        .level-display {
+            color: #f0f;
+            font-size: 16px;
+            font-weight: 700;
+            text-shadow: 0 0 10px #f0f;
+        }
+
+        .length-display {
+            color: #0f0;
+            font-size: 14px;
+            font-weight: 700;
+            text-shadow: 0 0 10px #0f0;
+        }
+
+        .nanobot-timer {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(255, 0, 100, 0.2), rgba(150, 0, 100, 0.3));
+            border: 1px solid rgba(255, 0, 150, 0.5);
+            border-radius: 20px;
+            padding: 6px 16px;
+            color: #f0f;
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .timer-bar {
+            width: 80px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f0f, #0ff);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+
+        #startScreen, #gameOverScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(0, 50, 80, 0.95), rgba(0, 10, 20, 0.98));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        #gameOverScreen {
+            display: none;
+        }
+
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(28px, 8vw, 72px);
+            font-weight: 900;
+            background: linear-gradient(180deg, #0ff, #f0f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.8));
+            margin-bottom: 10px;
+            text-align: center;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.8)); }
+            50% { filter: drop-shadow(0 0 40px rgba(255, 0, 255, 0.9)); }
+        }
+
+        .subtitle {
+            color: rgba(0, 255, 255, 0.8);
+            font-size: clamp(12px, 3vw, 24px);
+            letter-spacing: 5px;
+            margin-bottom: 40px;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
+            border: 2px solid #0ff;
+            color: #0ff;
+            padding: 15px 40px;
+            font-size: clamp(14px, 4vw, 24px);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .start-btn:hover, .start-btn:active {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.4), rgba(255, 0, 255, 0.4));
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+            transform: scale(1.05);
+        }
+
+        .controls-info {
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: clamp(10px, 2.5vw, 14px);
+            text-align: center;
+            line-height: 2;
+        }
+
+        .controls-info span {
+            color: #0ff;
+            font-weight: bold;
+        }
+
+        .final-score {
+            font-size: clamp(24px, 6vw, 48px);
+            color: #f0f;
+            font-family: 'Orbitron', sans-serif;
+            margin: 20px 0;
+            text-shadow: 0 0 20px #f0f;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.03) 0px,
+                rgba(0, 0, 0, 0.03) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            z-index: 300;
+        }
+
+        .level-up {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #0ff;
+            font-size: clamp(24px, 6vw, 48px);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            text-shadow: 0 0 30px #0ff, 0 0 60px #f0f;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 250;
+        }
+
+        .level-up.active {
+            animation: levelUpAnim 1.5s ease-out forwards;
+        }
+
+        @keyframes levelUpAnim {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+        }
+
+        .swipe-hint {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 10px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameCanvas"></div>
+    
+    <div class="scanlines"></div>
+    
+    <div id="ui">
+        <div class="hud-panel">
+            <div class="score-label">NANOBOTS</div>
+            <div class="score-display" id="score">0</div>
+        </div>
+        <div class="hud-panel" style="text-align: center;">
+            <div class="score-label">NIVEL</div>
+            <div class="level-display" id="level">1</div>
+        </div>
+        <div class="hud-panel">
+            <div class="score-label">LONGITUD</div>
+            <div class="length-display" id="length">3</div>
+        </div>
+    </div>
+
+    <div class="nanobot-timer">
+        <div>NANOBOT</div>
+        <div class="timer-bar">
+            <div class="timer-fill" id="timerFill"></div>
+        </div>
+    </div>
+
+    <div class="level-up" id="levelUp">¡NIVEL COMPLETADO!</div>
+    <div class="swipe-hint">DESLIZA PARA MOVER</div>
+
+    <div id="startScreen">
+        <div class="title">CYBER SNAKE</div>
+        <div class="subtitle">NANOBOT HUNTER</div>
+        <button class="start-btn" id="startBtn">INICIAR</button>
+        <div class="controls-info">
+            <span>↑ ↓ ← →</span> o <span>W A S D</span> para mover<br>
+            <span>DESLIZA</span> en pantalla táctil<br>
+            <span>ESPACIO</span> para acelerar
+        </div>
+    </div>
+
+    <div id="gameOverScreen">
+        <div class="title" style="font-size: clamp(24px, 6vw, 48px);">GAME OVER</div>
+        <div class="final-score">SCORE: <span id="finalScore">0</span></div>
+        <button class="start-btn" id="restartBtn">REINICIAR</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Game Configuration
+        const CONFIG = {
+            CELL_SIZE: 1,
+            SNAKE_SPEED: 180,
+            FAST_SPEED: 80,
+            NANOBOT_LIFETIME: 5000,
+            GROWTH_THRESHOLD: 10,
+            OBSTACLE_PER_LEVEL: 3
+        };
+
+        // Game State
+        let scene, camera, renderer;
+        let snake = [];
+        let direction = { x: 1, y: 0 };
+        let nextDirection = { x: 1, y: 0 };
+        let nanobot = null;
+        let nanobotTimer = null;
+        let nanobotStartTime = 0;
+        let obstacles = [];
+        let particles = [];
+        let score = 0;
+        let level = 1;
+        let gridWidth, gridHeight;
+        let gameRunning = false;
+        let lastMoveTime = 0;
+        let currentSpeed = CONFIG.SNAKE_SPEED;
+        let gridFloor = null;
+        let backgroundStars = null;
+        let nebulaParticles = [];
+
+        // Touch controls
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchThreshold = 30;
+
+        // Snake colors
+        const snakeColors = [
+            0x00ffff, 0x00eeff, 0x00ddff, 0x00ccff, 0x00bbff,
+            0x00aaff, 0x0099ff, 0x0088ff, 0x0077ff, 0x0066ff,
+            0x0055ff, 0x0044ff, 0x0033ff, 0x0022ff, 0x0011ff
+        ];
+
+        function calculateGridSize() {
+            const aspect = window.innerWidth / window.innerHeight;
+            // Base size that grows with level
+            const baseSize = 14 + (level - 1) * 3;
+            
+            if (aspect < 1) {
+                // Vertical (mobile) - fill entire screen
+                gridWidth = baseSize;
+                gridHeight = Math.round(baseSize / aspect);
+            } else {
+                // Horizontal (desktop)
+                gridHeight = baseSize;
+                gridWidth = Math.round(baseSize * aspect);
+            }
+        }
+
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000510);
+
+            const aspect = window.innerWidth / window.innerHeight;
+            camera = new THREE.OrthographicCamera(
+                -10 * aspect, 10 * aspect, 10, -10, 0.1, 1000
+            );
+            camera.position.set(0, 50, 0);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('gameCanvas').appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x334466, 0.8);
+            scene.add(ambientLight);
+
+            const topLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            topLight.position.set(0, 50, 0);
+            scene.add(topLight);
+
+            const cyanLight = new THREE.PointLight(0x00ffff, 1, 100);
+            cyanLight.position.set(-20, 20, -20);
+            scene.add(cyanLight);
+
+            const magentaLight = new THREE.PointLight(0xff00ff, 1, 100);
+            magentaLight.position.set(20, 20, 20);
+            scene.add(magentaLight);
+
+            createBackground();
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function updateCamera() {
+            const aspect = window.innerWidth / window.innerHeight;
+            
+            // Calculate exact camera bounds to match grid perfectly
+            const halfWidth = (gridWidth * CONFIG.CELL_SIZE) / 2;
+            const halfHeight = (gridHeight * CONFIG.CELL_SIZE) / 2;
+            
+            // Add tiny margin (2%) so edges are just visible
+            const margin = 1.02;
+            
+            camera.left = -halfWidth * margin;
+            camera.right = halfWidth * margin;
+            camera.top = halfHeight * margin;
+            camera.bottom = -halfHeight * margin;
+            camera.updateProjectionMatrix();
+        }
+
+        function createBackground() {
+            // Dynamic plasma/energy field background
+            const bgGeometry = new THREE.PlaneGeometry(500, 500);
+            const bgMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 },
+                    color1: { value: new THREE.Color(0x000520) },
+                    color2: { value: new THREE.Color(0x0a0030) },
+                    color3: { value: new THREE.Color(0x100040) }
+                },
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float time;
+                    uniform vec3 color1;
+                    uniform vec3 color2;
+                    uniform vec3 color3;
+                    varying vec2 vUv;
+                    
+                    void main() {
+                        vec2 p = vUv * 2.0 - 1.0;
+                        float d = length(p);
+                        
+                        float wave1 = sin(p.x * 3.0 + time * 0.5) * cos(p.y * 3.0 + time * 0.3);
+                        float wave2 = sin(p.x * 5.0 - time * 0.4) * sin(p.y * 4.0 + time * 0.6);
+                        float wave3 = cos(d * 8.0 - time * 0.8) * 0.5;
+                        
+                        float pattern = (wave1 + wave2 + wave3) * 0.33 + 0.5;
+                        
+                        vec3 col = mix(color1, color2, pattern);
+                        col = mix(col, color3, sin(d * 4.0 + time * 0.2) * 0.5 + 0.5);
+                        
+                        // Add subtle glow in center
+                        col += vec3(0.0, 0.05, 0.1) * (1.0 - d * 0.5);
+                        
+                        gl_FragColor = vec4(col, 1.0);
+                    }
+                `
+            });
+            const bgPlane = new THREE.Mesh(bgGeometry, bgMaterial);
+            bgPlane.rotation.x = -Math.PI / 2;
+            bgPlane.position.y = -15;
+            bgPlane.userData.isBackground = true;
+            scene.add(bgPlane);
+
+            // Animated starfield - multiple layers
+            for (let layer = 0; layer < 3; layer++) {
+                const starsGeom = new THREE.BufferGeometry();
+                const starsCount = 1500;
+                const positions = new Float32Array(starsCount * 3);
+                const colors = new Float32Array(starsCount * 3);
+                const sizes = new Float32Array(starsCount);
+
+                for (let i = 0; i < starsCount; i++) {
+                    positions[i * 3] = (Math.random() - 0.5) * 300;
+                    positions[i * 3 + 1] = -3 - layer * 3 - Math.random() * 5;
+                    positions[i * 3 + 2] = (Math.random() - 0.5) * 300;
+
+                    const colorChoice = Math.random();
+                    if (colorChoice < 0.25) {
+                        colors[i * 3] = 0; colors[i * 3 + 1] = 1; colors[i * 3 + 2] = 1;
+                    } else if (colorChoice < 0.5) {
+                        colors[i * 3] = 1; colors[i * 3 + 1] = 0; colors[i * 3 + 2] = 1;
+                    } else if (colorChoice < 0.75) {
+                        colors[i * 3] = 0.5; colors[i * 3 + 1] = 0.5; colors[i * 3 + 2] = 1;
+                    } else {
+                        colors[i * 3] = 1; colors[i * 3 + 1] = 1; colors[i * 3 + 2] = 1;
+                    }
+                    sizes[i] = 0.1 + Math.random() * 0.4;
+                }
+
+                starsGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                starsGeom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                const starsMat = new THREE.PointsMaterial({
+                    size: 0.2 + layer * 0.1,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 0.9 - layer * 0.2
+                });
+
+                const stars = new THREE.Points(starsGeom, starsMat);
+                stars.userData.rotSpeed = 0.0002 * (layer + 1);
+                stars.userData.isStarLayer = true;
+                scene.add(stars);
+                if (layer === 0) backgroundStars = stars;
+            }
+
+            // Floating energy orbs
+            for (let i = 0; i < 25; i++) {
+                const orbGeom = new THREE.SphereGeometry(0.3 + Math.random() * 0.5, 16, 16);
+                const hue = Math.random();
+                const orbMat = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(hue, 1, 0.5),
+                    transparent: true,
+                    opacity: 0.3 + Math.random() * 0.3
+                });
+                const orb = new THREE.Mesh(orbGeom, orbMat);
+                
+                const radius = 20 + Math.random() * 40;
+                const angle = Math.random() * Math.PI * 2;
+                orb.position.set(
+                    Math.cos(angle) * radius,
+                    -2 - Math.random() * 3,
+                    Math.sin(angle) * radius
+                );
+                orb.userData = {
+                    angle: angle,
+                    radius: radius,
+                    speed: 0.002 + Math.random() * 0.003,
+                    ySpeed: 0.01 + Math.random() * 0.02,
+                    baseY: orb.position.y,
+                    isOrb: true
+                };
+                scene.add(orb);
+                nebulaParticles.push(orb);
+            }
+
+            // Electric arc lines
+            for (let i = 0; i < 8; i++) {
+                const points = [];
+                const startAngle = (i / 8) * Math.PI * 2;
+                const radius = 35;
+                
+                for (let j = 0; j <= 20; j++) {
+                    const t = j / 20;
+                    const angle = startAngle + t * 0.5;
+                    points.push(new THREE.Vector3(
+                        Math.cos(angle) * radius * (1 + Math.sin(t * Math.PI) * 0.3),
+                        -1 - Math.sin(t * Math.PI * 3) * 0.5,
+                        Math.sin(angle) * radius * (1 + Math.sin(t * Math.PI) * 0.3)
+                    ));
+                }
+                
+                const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
+                const lineMat = new THREE.LineBasicMaterial({
+                    color: new THREE.Color().setHSL(0.5 + i * 0.05, 1, 0.5),
+                    transparent: true,
+                    opacity: 0.4
+                });
+                const line = new THREE.Line(lineGeom, lineMat);
+                line.userData.baseAngle = startAngle;
+                line.userData.isArc = true;
+                scene.add(line);
+            }
+        }
+
+        function createGrid() {
+            if (gridFloor) {
+                scene.remove(gridFloor);
+            }
+
+            gridFloor = new THREE.Group();
+
+            const totalWidth = gridWidth * CONFIG.CELL_SIZE;
+            const totalHeight = gridHeight * CONFIG.CELL_SIZE;
+
+            // Main floor with gradient shader
+            const floorGeom = new THREE.PlaneGeometry(totalWidth, totalHeight);
+            const floorMat = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 },
+                    gridSize: { value: new THREE.Vector2(gridWidth, gridHeight) }
+                },
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float time;
+                    uniform vec2 gridSize;
+                    varying vec2 vUv;
+                    
+                    void main() {
+                        vec2 grid = vUv * gridSize;
+                        vec2 gridLines = abs(fract(grid - 0.5) - 0.5) / fwidth(grid);
+                        float line = min(gridLines.x, gridLines.y);
+                        
+                        // Base color with radial gradient
+                        float dist = length(vUv - 0.5);
+                        vec3 baseColor = mix(
+                            vec3(0.02, 0.04, 0.08),
+                            vec3(0.0, 0.01, 0.03),
+                            dist * 1.5
+                        );
+                        
+                        // Animated pulse waves
+                        float pulse = sin(dist * 20.0 - time * 2.0) * 0.5 + 0.5;
+                        pulse *= (1.0 - dist) * 0.3;
+                        
+                        // Grid glow
+                        float gridGlow = 1.0 - min(line, 1.0);
+                        vec3 gridColor = mix(
+                            vec3(0.0, 0.8, 1.0),
+                            vec3(1.0, 0.0, 1.0),
+                            sin(time * 0.5 + dist * 3.0) * 0.5 + 0.5
+                        );
+                        
+                        vec3 finalColor = baseColor + gridColor * gridGlow * 0.4 + vec3(0.0, pulse * 0.3, pulse * 0.5);
+                        
+                        gl_FragColor = vec4(finalColor, 0.95);
+                    }
+                `,
+                transparent: true
+            });
+            const floor = new THREE.Mesh(floorGeom, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -0.05;
+            floor.userData.isFloor = true;
+            gridFloor.add(floor);
+
+            // Animated edge border
+            const edgeGeom = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(-totalWidth/2, 0.01, -totalHeight/2),
+                new THREE.Vector3(totalWidth/2, 0.01, -totalHeight/2),
+                new THREE.Vector3(totalWidth/2, 0.01, totalHeight/2),
+                new THREE.Vector3(-totalWidth/2, 0.01, totalHeight/2),
+                new THREE.Vector3(-totalWidth/2, 0.01, -totalHeight/2)
+            ]);
+            const edgeMat = new THREE.LineBasicMaterial({ 
+                color: 0x00ffff, 
+                transparent: true, 
+                opacity: 0.8
+            });
+            const edge = new THREE.Line(edgeGeom, edgeMat);
+            edge.userData.isEdge = true;
+            gridFloor.add(edge);
+
+            // Corner markers
+            const corners = [
+                [-totalWidth/2, -totalHeight/2],
+                [totalWidth/2, -totalHeight/2],
+                [totalWidth/2, totalHeight/2],
+                [-totalWidth/2, totalHeight/2]
+            ];
+            
+            corners.forEach((pos, i) => {
+                const markerGeom = new THREE.RingGeometry(0.3, 0.5, 4);
+                const markerMat = new THREE.MeshBasicMaterial({
+                    color: 0xff00ff,
+                    transparent: true,
+                    opacity: 0.7,
+                    side: THREE.DoubleSide
+                });
+                const marker = new THREE.Mesh(markerGeom, markerMat);
+                marker.rotation.x = -Math.PI / 2;
+                marker.rotation.z = Math.PI / 4;
+                marker.position.set(pos[0], 0.02, pos[1]);
+                marker.userData.cornerIndex = i;
+                gridFloor.add(marker);
+            });
+
+            scene.add(gridFloor);
+        }
+
+        function gridToWorld(gx, gz) {
+            const totalWidth = gridWidth * CONFIG.CELL_SIZE;
+            const totalHeight = gridHeight * CONFIG.CELL_SIZE;
+            return {
+                x: (gx + 0.5) * CONFIG.CELL_SIZE - totalWidth / 2,
+                z: (gz + 0.5) * CONFIG.CELL_SIZE - totalHeight / 2
+            };
+        }
+
+        function createSnakeSegment(gx, gz, index, totalLength) {
+            const group = new THREE.Group();
+            const isHead = index === 0;
+            const colorIndex = Math.min(index, snakeColors.length - 1);
+            const segmentColor = snakeColors[colorIndex];
+            
+            const sizeFactor = isHead ? 1 : Math.max(0.5, 1 - index * 0.03);
+            const baseRadius = 0.35 * sizeFactor;
+
+            if (isHead) {
+                // Snake head - more organic shape
+                const headGeom = new THREE.SphereGeometry(0.4, 16, 12);
+                headGeom.scale(1.2, 0.7, 1.4);
+                const headMat = new THREE.MeshStandardMaterial({
+                    color: 0x00ffff,
+                    metalness: 0.7,
+                    roughness: 0.2,
+                    emissive: 0x00ffff,
+                    emissiveIntensity: 0.3
+                });
+                const head = new THREE.Mesh(headGeom, headMat);
+                head.position.y = 0.25;
+                group.add(head);
+
+                // Eyes
+                const eyeGeom = new THREE.SphereGeometry(0.1, 12, 12);
+                const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+                
+                const leftEye = new THREE.Mesh(eyeGeom, eyeMat);
+                leftEye.position.set(0.2, 0.35, 0.35);
+                group.add(leftEye);
+
+                const rightEye = new THREE.Mesh(eyeGeom, eyeMat);
+                rightEye.position.set(-0.2, 0.35, 0.35);
+                group.add(rightEye);
+
+                // Tongue
+                const tongueGeom = new THREE.ConeGeometry(0.03, 0.3, 4);
+                const tongueMat = new THREE.MeshBasicMaterial({ color: 0xff3366 });
+                const tongue = new THREE.Mesh(tongueGeom, tongueMat);
+                tongue.rotation.x = Math.PI / 2;
+                tongue.position.set(0, 0.2, 0.55);
+                tongue.userData.isTongue = true;
+                group.add(tongue);
+
+                // Cyber antenna
+                const antennaGeom = new THREE.CylinderGeometry(0.02, 0.04, 0.3, 8);
+                const antennaMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+                const antenna = new THREE.Mesh(antennaGeom, antennaMat);
+                antenna.position.set(0, 0.55, -0.1);
+                group.add(antenna);
+
+                const antennaTip = new THREE.SphereGeometry(0.06, 8, 8);
+                const antennaTipMesh = new THREE.Mesh(antennaTip, new THREE.MeshBasicMaterial({ color: 0xff00ff }));
+                antennaTipMesh.position.set(0, 0.72, -0.1);
+                group.add(antennaTipMesh);
+
+            } else {
+                // Body segments
+                const bodyGeom = new THREE.SphereGeometry(baseRadius, 12, 10);
+                bodyGeom.scale(1, 0.7, 1.1);
+                
+                const bodyMat = new THREE.MeshStandardMaterial({
+                    color: segmentColor,
+                    metalness: 0.6,
+                    roughness: 0.3,
+                    emissive: segmentColor,
+                    emissiveIntensity: 0.15
+                });
+                const body = new THREE.Mesh(bodyGeom, bodyMat);
+                body.position.y = 0.2;
+                group.add(body);
+
+                // Glowing ring
+                const ringGeom = new THREE.TorusGeometry(baseRadius * 0.9, 0.02, 8, 16);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: 0x00ffff,
+                    transparent: true,
+                    opacity: 0.5 - index * 0.02
+                });
+                const ring = new THREE.Mesh(ringGeom, ringMat);
+                ring.rotation.x = Math.PI / 2;
+                ring.position.y = 0.2;
+                group.add(ring);
+            }
+
+            const worldPos = gridToWorld(gx, gz);
+            group.position.set(worldPos.x, 0, worldPos.z);
+            group.userData = { gridX: gx, gridZ: gz, index: index };
+
+            scene.add(group);
+            return group;
+        }
+
+        function createNanobot() {
+            if (nanobot) scene.remove(nanobot);
+
+            const group = new THREE.Group();
+
+            // Core
+            const coreGeom = new THREE.IcosahedronGeometry(0.3, 1);
+            const coreMat = new THREE.MeshStandardMaterial({
+                color: 0xff00ff,
+                metalness: 0.9,
+                roughness: 0.1,
+                emissive: 0xff00ff,
+                emissiveIntensity: 0.8
+            });
+            const core = new THREE.Mesh(coreGeom, coreMat);
+            group.add(core);
+
+            // Orbiting rings
+            for (let i = 0; i < 3; i++) {
+                const ringGeom = new THREE.TorusGeometry(0.45 + i * 0.1, 0.02, 8, 32);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: [0xff00ff, 0x00ffff, 0xffff00][i],
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const ring = new THREE.Mesh(ringGeom, ringMat);
+                ring.rotation.x = Math.PI / 2 + i * 0.4;
+                ring.rotation.z = i * 0.5;
+                ring.userData.rotSpeed = 0.02 + i * 0.01;
+                group.add(ring);
+            }
+
+            // Find valid position
+            let gx, gz, valid;
+            let attempts = 0;
+            do {
+                gx = Math.floor(Math.random() * gridWidth);
+                gz = Math.floor(Math.random() * gridHeight);
+                valid = true;
+                
+                for (const seg of snake) {
+                    if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
+                        valid = false;
+                        break;
+                    }
+                }
+                for (const obs of obstacles) {
+                    if (obs.userData.gridX === gx && obs.userData.gridZ === gz) {
+                        valid = false;
+                        break;
+                    }
+                }
+                attempts++;
+            } while (!valid && attempts < 100);
+
+            const worldPos = gridToWorld(gx, gz);
+            group.position.set(worldPos.x, 0.5, worldPos.z);
+            group.userData = { gridX: gx, gridZ: gz };
+
+            scene.add(group);
+            nanobot = group;
+
+            nanobotStartTime = Date.now();
+            if (nanobotTimer) clearTimeout(nanobotTimer);
+            nanobotTimer = setTimeout(() => {
+                if (nanobot && gameRunning) {
+                    createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z, 0xff00ff);
+                    createNanobot();
+                }
+            }, CONFIG.NANOBOT_LIFETIME);
+        }
+
+        function createObstacle() {
+            const group = new THREE.Group();
+
+            const height = 1 + Math.random() * 1.5;
+            const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
+            obstacleGeom.scale(1, height, 1);
+            
+            const obstacleMat = new THREE.MeshStandardMaterial({
+                color: 0xff3300,
+                metalness: 0.8,
+                roughness: 0.2,
+                emissive: 0xff2200,
+                emissiveIntensity: 0.4
+            });
+            const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
+            obstacle.position.y = height * 0.35;
+            group.add(obstacle);
+
+            // Warning ring
+            const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                transparent: true,
+                opacity: 0.6
+            });
+            const ring = new THREE.Mesh(ringGeom, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.05;
+            group.add(ring);
+
+            // Find valid position
+            let gx, gz, valid;
+            let attempts = 0;
+            do {
+                gx = Math.floor(Math.random() * gridWidth);
+                gz = Math.floor(Math.random() * gridHeight);
+                valid = true;
+                
+                // Check distance from snake head
+                if (snake.length > 0) {
+                    const head = snake[0];
+                    const dist = Math.abs(head.userData.gridX - gx) + Math.abs(head.userData.gridZ - gz);
+                    if (dist < 5) valid = false;
+                }
+                
+                for (const seg of snake) {
+                    if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
+                        valid = false;
+                        break;
+                    }
+                }
+                for (const obs of obstacles) {
+                    if (obs.userData.gridX === gx && obs.userData.gridZ === gz) {
+                        valid = false;
+                        break;
+                    }
+                }
+                if (nanobot && nanobot.userData.gridX === gx && nanobot.userData.gridZ === gz) {
+                    valid = false;
+                }
+                attempts++;
+            } while (!valid && attempts < 100);
+
+            if (attempts >= 100) return;
+
+            const worldPos = gridToWorld(gx, gz);
+            group.position.set(worldPos.x, 0, worldPos.z);
+            group.userData = { gridX: gx, gridZ: gz };
+
+            scene.add(group);
+            obstacles.push(group);
+        }
+
+        function createExplosion(x, y, z, color) {
+            for (let i = 0; i < 25; i++) {
+                const geom = new THREE.SphereGeometry(0.08, 6, 6);
+                const mat = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color(color),
+                    transparent: true,
+                    opacity: 1
+                });
+                const particle = new THREE.Mesh(geom, mat);
+                particle.position.set(x, y, z);
+                
+                const speed = 0.15 + Math.random() * 0.2;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                
+                particle.userData = {
+                    velocity: new THREE.Vector3(
+                        Math.sin(phi) * Math.cos(theta) * speed,
+                        Math.cos(phi) * speed * 0.5 + 0.1,
+                        Math.sin(phi) * Math.sin(theta) * speed
+                    ),
+                    life: 1,
+                    decay: 0.02 + Math.random() * 0.01
+                };
+                
+                scene.add(particle);
+                particles.push(particle);
+            }
+        }
+
+        function initGame() {
+            // Clear previous game
+            snake.forEach(s => scene.remove(s));
+            snake = [];
+            obstacles.forEach(o => scene.remove(o));
+            obstacles = [];
+            particles.forEach(p => scene.remove(p));
+            particles = [];
+            if (nanobot) scene.remove(nanobot);
+            nanobot = null;
+
+            score = 0;
+            level = 1;
+            direction = { x: 1, y: 0 };
+            nextDirection = { x: 1, y: 0 };
+            currentSpeed = CONFIG.SNAKE_SPEED;
+
+            calculateGridSize();
+            createGrid();
+            updateCamera();
+            updateUI();
+
+            // Start snake in center
+            const startX = Math.floor(gridWidth / 2);
+            const startZ = Math.floor(gridHeight / 2);
+
+            snake.push(createSnakeSegment(startX, startZ, 0, 3));
+            snake.push(createSnakeSegment(startX - 1, startZ, 1, 3));
+            snake.push(createSnakeSegment(startX - 2, startZ, 2, 3));
+
+            createNanobot();
+            gameRunning = true;
+            lastMoveTime = Date.now();
+        }
+
+        function updateSnake() {
+            const now = Date.now();
+            if (now - lastMoveTime < currentSpeed) return;
+            lastMoveTime = now;
+
+            direction = { ...nextDirection };
+
+            const head = snake[0];
+            let newX = head.userData.gridX + direction.x;
+            let newZ = head.userData.gridZ + direction.y;
+
+            // Wrap around edges (no walls!)
+            if (newX < 0) newX = gridWidth - 1;
+            if (newX >= gridWidth) newX = 0;
+            if (newZ < 0) newZ = gridHeight - 1;
+            if (newZ >= gridHeight) newZ = 0;
+
+            // Check self collision
+            for (let i = 1; i < snake.length; i++) {
+                if (snake[i].userData.gridX === newX && snake[i].userData.gridZ === newZ) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            // Check obstacle collision
+            for (const obs of obstacles) {
+                if (obs.userData.gridX === newX && obs.userData.gridZ === newZ) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            // Check nanobot collection
+            let grow = false;
+            if (nanobot && nanobot.userData.gridX === newX && nanobot.userData.gridZ === newZ) {
+                grow = true;
+                score++;
+                
+                createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z, 0xff00ff);
+                scene.remove(nanobot);
+                nanobot = null;
+                clearTimeout(nanobotTimer);
+
+                // Level up every 10 nanobots
+                if (score % CONFIG.GROWTH_THRESHOLD === 0) {
+                    levelUp();
+                } else {
+                    createNanobot();
+                }
+
+                updateUI();
+            }
+
+            // Move snake
+            const positions = [{ x: newX, z: newZ }];
+            snake.forEach(seg => {
+                positions.push({ x: seg.userData.gridX, z: seg.userData.gridZ });
+            });
+
+            snake.forEach(seg => scene.remove(seg));
+            snake = [];
+
+            const newLength = grow ? positions.length : positions.length - 1;
+            for (let i = 0; i < newLength; i++) {
+                snake.push(createSnakeSegment(positions[i].x, positions[i].z, i, newLength));
+            }
+
+            // Update head rotation
+            const angle = Math.atan2(direction.y, direction.x);
+            snake[0].rotation.y = -angle;
+
+            document.getElementById('length').textContent = snake.length;
+        }
+
+        function levelUp() {
+            level++;
+            
+            // Show level up message
+            const levelUpEl = document.getElementById('levelUp');
+            levelUpEl.textContent = `¡NIVEL ${level}!`;
+            levelUpEl.classList.add('active');
+            setTimeout(() => levelUpEl.classList.remove('active'), 1500);
+
+            // Store snake relative positions
+            const oldGridWidth = gridWidth;
+            const oldGridHeight = gridHeight;
+            const snakePositions = snake.map(seg => ({
+                relX: seg.userData.gridX / oldGridWidth,
+                relZ: seg.userData.gridZ / oldGridHeight
+            }));
+
+            // Expand grid
+            calculateGridSize();
+            createGrid();
+            updateCamera();
+
+            // Reposition snake
+            snake.forEach(seg => scene.remove(seg));
+            snake = [];
+            
+            snakePositions.forEach((pos, i) => {
+                const newX = Math.floor(pos.relX * gridWidth);
+                const newZ = Math.floor(pos.relZ * gridHeight);
+                snake.push(createSnakeSegment(newX, newZ, i, snakePositions.length));
+            });
+
+            // Reposition existing obstacles
+            const oldObstaclePositions = obstacles.map(obs => ({
+                relX: obs.userData.gridX / oldGridWidth,
+                relZ: obs.userData.gridZ / oldGridHeight
+            }));
+            
+            obstacles.forEach(obs => scene.remove(obs));
+            obstacles = [];
+            
+            oldObstaclePositions.forEach(pos => {
+                const gx = Math.floor(pos.relX * gridWidth);
+                const gz = Math.floor(pos.relZ * gridHeight);
+                
+                const group = createObstacleAt(gx, gz);
+                if (group) obstacles.push(group);
+            });
+
+            // Add new obstacles
+            for (let i = 0; i < CONFIG.OBSTACLE_PER_LEVEL; i++) {
+                createObstacle();
+            }
+
+            createNanobot();
+            document.getElementById('level').textContent = level;
+        }
+
+        function createObstacleAt(gx, gz) {
+            const group = new THREE.Group();
+
+            const height = 1 + Math.random() * 1.5;
+            const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
+            obstacleGeom.scale(1, height, 1);
+            
+            const obstacleMat = new THREE.MeshStandardMaterial({
+                color: 0xff3300,
+                metalness: 0.8,
+                roughness: 0.2,
+                emissive: 0xff2200,
+                emissiveIntensity: 0.4
+            });
+            const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
+            obstacle.position.y = height * 0.35;
+            group.add(obstacle);
+
+            const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                transparent: true,
+                opacity: 0.6
+            });
+            const ring = new THREE.Mesh(ringGeom, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.05;
+            group.add(ring);
+
+            const worldPos = gridToWorld(gx, gz);
+            group.position.set(worldPos.x, 0, worldPos.z);
+            group.userData = { gridX: gx, gridZ: gz };
+
+            scene.add(group);
+            return group;
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            
+            snake.forEach(seg => {
+                createExplosion(seg.position.x, seg.position.y + 0.3, seg.position.z, 0x00ffff);
+            });
+
+            document.getElementById('finalScore').textContent = score;
+            setTimeout(() => {
+                document.getElementById('gameOverScreen').style.display = 'flex';
+            }, 500);
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('length').textContent = snake.length;
+            document.getElementById('level').textContent = level;
+        }
+
+        function updateTimerDisplay() {
+            if (!nanobot || !gameRunning) return;
+            
+            const elapsed = Date.now() - nanobotStartTime;
+            const remaining = Math.max(0, CONFIG.NANOBOT_LIFETIME - elapsed);
+            const percent = (remaining / CONFIG.NANOBOT_LIFETIME) * 100;
+            
+            document.getElementById('timerFill').style.width = percent + '%';
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now() * 0.001;
+
+            if (gameRunning) {
+                updateSnake();
+                updateTimerDisplay();
+            }
+
+            // Animate background shader
+            scene.children.forEach(child => {
+                if (child.userData.isBackground && child.material.uniforms) {
+                    child.material.uniforms.time.value = time;
+                }
+                if (child.userData.isStarLayer) {
+                    child.rotation.y += child.userData.rotSpeed;
+                }
+                if (child.userData.isArc) {
+                    child.rotation.y += 0.002;
+                }
+            });
+
+            // Animate floating orbs
+            nebulaParticles.forEach((orb, i) => {
+                const data = orb.userData;
+                if (data.isOrb) {
+                    data.angle += data.speed;
+                    orb.position.x = Math.cos(data.angle) * data.radius;
+                    orb.position.z = Math.sin(data.angle) * data.radius;
+                    orb.position.y = data.baseY + Math.sin(time * data.ySpeed * 50 + i) * 1.5;
+                    
+                    // Pulse opacity
+                    orb.material.opacity = 0.3 + Math.sin(time * 2 + i) * 0.2;
+                }
+            });
+
+            // Animate nanobot
+            if (nanobot) {
+                nanobot.rotation.y += 0.03;
+                nanobot.position.y = 0.5 + Math.sin(time * 4) * 0.15;
+
+                nanobot.children.forEach(child => {
+                    if (child.userData.rotSpeed) {
+                        child.rotation.z += child.userData.rotSpeed;
+                    }
+                });
+            }
+
+            // Animate obstacles
+            obstacles.forEach((obs, i) => {
+                if (obs.children[0]) obs.children[0].rotation.y += 0.01;
+                if (obs.children[1]) {
+                    const pulse = 1 + Math.sin(time * 3 + i) * 0.1;
+                    obs.children[1].scale.setScalar(pulse);
+                }
+            });
+
+            // Animate snake
+            if (snake.length > 0) {
+                snake[0].children.forEach(child => {
+                    if (child.userData.isTongue) {
+                        child.position.z = 0.55 + Math.sin(time * 10) * 0.1;
+                    }
+                });
+
+                snake.forEach((seg, i) => {
+                    if (i > 0) {
+                        seg.position.y = Math.sin(time * 5 + i * 0.4) * 0.05;
+                    }
+                });
+            }
+
+            // Animate floor shader
+            if (gridFloor) {
+                gridFloor.children.forEach(child => {
+                    if (child.userData.isFloor && child.material.uniforms) {
+                        child.material.uniforms.time.value = time;
+                    }
+                    if (child.userData.isEdge) {
+                        child.material.opacity = 0.5 + Math.sin(time * 3) * 0.3;
+                    }
+                    if (child.userData.cornerIndex !== undefined) {
+                        child.rotation.z = Math.PI / 4 + time * 0.5 + child.userData.cornerIndex * 0.5;
+                        child.scale.setScalar(1 + Math.sin(time * 2 + child.userData.cornerIndex) * 0.2);
+                    }
+                });
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.position.add(p.userData.velocity);
+                p.userData.velocity.y -= 0.005;
+                p.userData.life -= p.userData.decay;
+                p.material.opacity = p.userData.life;
+
+                if (p.userData.life <= 0) {
+                    scene.remove(p);
+                    particles.splice(i, 1);
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            const aspect = window.innerWidth / window.innerHeight;
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            if (gridWidth && gridHeight) {
+                updateCamera();
+            }
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+
+            switch (e.key.toLowerCase()) {
+                case 'arrowup': case 'w':
+                    if (direction.y !== 1) nextDirection = { x: 0, y: -1 };
+                    break;
+                case 'arrowdown': case 's':
+                    if (direction.y !== -1) nextDirection = { x: 0, y: 1 };
+                    break;
+                case 'arrowleft': case 'a':
+                    if (direction.x !== 1) nextDirection = { x: -1, y: 0 };
+                    break;
+                case 'arrowright': case 'd':
+                    if (direction.x !== -1) nextDirection = { x: 1, y: 0 };
+                    break;
+                case ' ':
+                    currentSpeed = CONFIG.FAST_SPEED;
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === ' ') {
+                currentSpeed = CONFIG.SNAKE_SPEED;
+            }
+        });
+
+        // Touch/Swipe controls
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchend', (e) => {
+            if (!gameRunning) return;
+
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            if (Math.abs(deltaX) < touchThreshold && Math.abs(deltaY) < touchThreshold) {
+                return;
+            }
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal swipe
+                if (deltaX > 0 && direction.x !== -1) {
+                    nextDirection = { x: 1, y: 0 };
+                } else if (deltaX < 0 && direction.x !== 1) {
+                    nextDirection = { x: -1, y: 0 };
+                }
+            } else {
+                // Vertical swipe
+                if (deltaY > 0 && direction.y !== -1) {
+                    nextDirection = { x: 0, y: 1 };
+                } else if (deltaY < 0 && direction.y !== 1) {
+                    nextDirection = { x: 0, y: -1 };
+                }
+            }
+        }, { passive: false });
+
+        // Button events
+        document.getElementById('startBtn').addEventListener('click', () => {
+            document.getElementById('startScreen').style.display = 'none';
+            initGame();
+        });
+
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            initGame();
+        });
+
+        // Initialize
+        initThree();
+        calculateGridSize();
+        updateCamera();
+        animate();
+    </script>
+</body>
+</html>
