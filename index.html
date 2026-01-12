@@ -42,63 +42,63 @@
         }
 
         .hud-panel {
-            background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 100, 150, 0.25));
-            border: 1px solid rgba(0, 255, 255, 0.4);
-            border-radius: 8px;
-            padding: 8px 12px;
-            backdrop-filter: blur(10px);
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.04), rgba(0, 100, 150, 0.06));
+            border: 1px solid rgba(0, 255, 255, 0.12);
+            border-radius: 5px;
+            padding: 3px 6px;
+            backdrop-filter: blur(3px);
         }
 
         .score-display {
-            color: #0ff;
-            font-size: 18px;
+            color: rgba(0, 255, 255, 0.9);
+            font-size: 14px;
             font-weight: 700;
-            text-shadow: 0 0 10px #0ff;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
             font-family: 'Orbitron', monospace;
         }
 
         .score-label {
-            color: rgba(0, 255, 255, 0.7);
-            font-size: 9px;
-            letter-spacing: 2px;
-            margin-bottom: 2px;
+            color: rgba(0, 255, 255, 0.5);
+            font-size: 7px;
+            letter-spacing: 1px;
+            margin-bottom: 1px;
         }
 
         .level-display {
-            color: #f0f;
-            font-size: 16px;
+            color: rgba(255, 0, 255, 0.9);
+            font-size: 14px;
             font-weight: 700;
-            text-shadow: 0 0 10px #f0f;
+            text-shadow: 0 0 8px rgba(255, 0, 255, 0.5);
         }
 
         .length-display {
-            color: #0f0;
-            font-size: 14px;
+            color: rgba(0, 255, 0, 0.9);
+            font-size: 12px;
             font-weight: 700;
-            text-shadow: 0 0 10px #0f0;
+            text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
         }
 
         .nanobot-timer {
             position: fixed;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, rgba(255, 0, 100, 0.2), rgba(150, 0, 100, 0.3));
-            border: 1px solid rgba(255, 0, 150, 0.5);
-            border-radius: 20px;
-            padding: 6px 16px;
-            color: #f0f;
+            top: 48px;
+            right: 10px;
+            background: linear-gradient(135deg, rgba(255, 0, 100, 0.05), rgba(150, 0, 100, 0.08));
+            border: 1px solid rgba(255, 0, 150, 0.15);
+            border-radius: 8px;
+            padding: 2px 8px;
+            color: rgba(255, 0, 255, 0.6);
             font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            backdrop-filter: blur(10px);
+            font-size: 7px;
+            backdrop-filter: blur(3px);
+            pointer-events: none;
         }
 
         .timer-bar {
-            width: 80px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.2);
+            width: 50px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.15);
             border-radius: 2px;
-            margin-top: 4px;
+            margin-top: 3px;
             overflow: hidden;
         }
 
@@ -242,14 +242,179 @@
 
         .swipe-hint {
             position: fixed;
-            bottom: 60px;
+            bottom: 140px;
             left: 50%;
             transform: translateX(-50%);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 9px;
             font-family: 'Orbitron', sans-serif;
             letter-spacing: 2px;
             pointer-events: none;
+        }
+
+        /* Controles táctiles */
+        .touch-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: none;
+            z-index: 150;
+        }
+
+        /* D-Pad (Flechas direccionales) */
+        .dpad {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            pointer-events: auto;
+        }
+
+        .dpad-btn {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(145deg, rgba(0, 255, 255, 0.06), rgba(0, 150, 200, 0.1));
+            border: 1px solid rgba(0, 255, 255, 0.15);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgba(0, 255, 255, 0.4);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            backdrop-filter: blur(2px);
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.08);
+        }
+
+        .dpad-btn:active, .dpad-btn.active {
+            background: linear-gradient(145deg, rgba(0, 255, 255, 0.2), rgba(0, 200, 255, 0.25));
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.25);
+            transform: scale(0.95);
+            color: rgba(0, 255, 255, 0.7);
+        }
+
+        .dpad-up {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .dpad-down {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .dpad-left {
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .dpad-right {
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Botón Turbo con forma de huevo */
+        .turbo-container {
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .turbo-btn {
+            width: 65px;
+            height: 80px;
+            background: linear-gradient(180deg, 
+                rgba(255, 100, 0, 0.08) 0%,
+                rgba(255, 50, 100, 0.12) 40%,
+                rgba(255, 0, 150, 0.15) 70%,
+                rgba(200, 0, 100, 0.18) 100%
+            );
+            border: 1px solid rgba(255, 100, 50, 0.2);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: all 0.15s ease;
+            box-shadow: 
+                0 0 10px rgba(255, 100, 0, 0.1),
+                inset 0 -8px 15px rgba(0, 0, 0, 0.1),
+                inset 0 8px 15px rgba(255, 255, 255, 0.03);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .turbo-btn::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 20%;
+            width: 25%;
+            height: 20%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+
+        .turbo-btn:active, .turbo-btn.active {
+            background: linear-gradient(180deg, 
+                rgba(255, 200, 0, 0.25) 0%,
+                rgba(255, 100, 50, 0.3) 40%,
+                rgba(255, 50, 150, 0.35) 70%,
+                rgba(255, 0, 100, 0.4) 100%
+            );
+            border-color: rgba(255, 255, 0, 0.4);
+            transform: scale(0.95);
+            box-shadow: 
+                0 0 20px rgba(255, 200, 0, 0.25),
+                inset 0 -8px 15px rgba(0, 0, 0, 0.15),
+                inset 0 8px 15px rgba(255, 255, 255, 0.08);
+        }
+
+        .turbo-icon {
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.5);
+            text-shadow: 0 0 8px rgba(255, 255, 0, 0.3);
+            margin-bottom: 2px;
+        }
+
+        .turbo-text {
+            color: rgba(255, 255, 255, 0.4);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .turbo-label {
+            color: rgba(255, 150, 50, 0.3);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 7px;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+        
+        .dpad-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 255, 255, 0.08);
+            border: 1px solid rgba(0, 255, 255, 0.15);
+            border-radius: 50%;
         }
     </style>
 </head>
@@ -281,7 +446,28 @@
     </div>
 
     <div class="level-up" id="levelUp">¡NIVEL COMPLETADO!</div>
-    <div class="swipe-hint">DESLIZA PARA MOVER</div>
+    <div class="swipe-hint">DESLIZA O USA LAS FLECHAS</div>
+
+    <!-- Controles táctiles -->
+    <div class="touch-controls" id="touchControls">
+        <!-- D-Pad izquierdo -->
+        <div class="dpad">
+            <div class="dpad-center"></div>
+            <button class="dpad-btn dpad-up" id="btnUp">▲</button>
+            <button class="dpad-btn dpad-down" id="btnDown">▼</button>
+            <button class="dpad-btn dpad-left" id="btnLeft">◀</button>
+            <button class="dpad-btn dpad-right" id="btnRight">▶</button>
+        </div>
+
+        <!-- Botón Turbo (huevo) derecho -->
+        <div class="turbo-container">
+            <button class="turbo-btn" id="turboBtn">
+                <span class="turbo-icon">⚡</span>
+                <span class="turbo-text">TURBO</span>
+            </button>
+            <span class="turbo-label">MANTENER</span>
+        </div>
+    </div>
 
     <div id="startScreen">
         <div class="title">CYBER SNAKE</div>
@@ -289,8 +475,8 @@
         <button class="start-btn" id="startBtn">INICIAR</button>
         <div class="controls-info">
             <span>↑ ↓ ← →</span> o <span>W A S D</span> para mover<br>
-            <span>DESLIZA</span> en pantalla táctil<br>
-            <span>ESPACIO</span> para acelerar
+            <span>DESLIZA</span> o usa el <span>D-PAD</span> táctil<br>
+            <span>🥚 TURBO</span> para velocidad x3
         </div>
     </div>
 
@@ -305,8 +491,8 @@
         // Game Configuration
         const CONFIG = {
             CELL_SIZE: 1,
-            SNAKE_SPEED: 180,
-            FAST_SPEED: 80,
+            SNAKE_SPEED: 220,
+            FAST_SPEED: 70,
             NANOBOT_LIFETIME: 5000,
             GROWTH_THRESHOLD: 10,
             OBSTACLE_PER_LEVEL: 3
@@ -346,17 +532,20 @@
 
         function calculateGridSize() {
             const aspect = window.innerWidth / window.innerHeight;
-            // Base size that grows with level
-            const baseSize = 14 + (level - 1) * 3;
+            // Base size que crece con el nivel
+            // Empezamos con celdas MUY GRANDES (pocas celdas)
+            const baseSize = 7 + (level - 1) * 3;
             
             if (aspect < 1) {
-                // Vertical (mobile) - fill entire screen
-                gridWidth = baseSize;
-                gridHeight = Math.round(baseSize / aspect);
+                // Vertical (mobile 9:16)
+                // Queremos que el ancho del grid ocupe casi toda la pantalla
+                gridWidth = Math.round(baseSize * 0.85);
+                // La altura se calcula proporcionalmente pero dejando espacio arriba para HUD
+                gridHeight = Math.round(gridWidth / aspect * 0.82);
             } else {
                 // Horizontal (desktop)
                 gridHeight = baseSize;
-                gridWidth = Math.round(baseSize * aspect);
+                gridWidth = Math.round(baseSize * aspect * 0.85);
             }
         }
 
@@ -365,16 +554,18 @@
             scene.background = new THREE.Color(0x000510);
 
             const aspect = window.innerWidth / window.innerHeight;
-            camera = new THREE.OrthographicCamera(
-                -10 * aspect, 10 * aspect, 10, -10, 0.1, 1000
-            );
-            camera.position.set(0, 50, 0);
+            // Usar cámara de perspectiva para efecto 3D inclinado
+            camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
+            camera.position.set(0, 25, 12);
             camera.lookAt(0, 0, 0);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('gameCanvas').appendChild(renderer.domElement);
+
+            // Calcular tamaño inicial del grid para posicionar cámara
+            calculateGridSize();
 
             // Lighting
             const ambientLight = new THREE.AmbientLight(0x334466, 0.8);
@@ -399,17 +590,47 @@
         function updateCamera() {
             const aspect = window.innerWidth / window.innerHeight;
             
-            // Calculate exact camera bounds to match grid perfectly
-            const halfWidth = (gridWidth * CONFIG.CELL_SIZE) / 2;
-            const halfHeight = (gridHeight * CONFIG.CELL_SIZE) / 2;
+            // Calculate grid dimensions
+            const totalWidth = gridWidth * CONFIG.CELL_SIZE;
+            const totalHeight = gridHeight * CONFIG.CELL_SIZE;
             
-            // Add tiny margin (2%) so edges are just visible
-            const margin = 1.02;
+            // FOV para perspectiva
+            camera.fov = 55;
+            const fov = camera.fov * (Math.PI / 180);
             
-            camera.left = -halfWidth * margin;
-            camera.right = halfWidth * margin;
-            camera.top = halfHeight * margin;
-            camera.bottom = -halfHeight * margin;
+            let cameraHeight, cameraZ, lookAtY, lookAtZ;
+            
+            if (aspect < 1) {
+                // Móvil vertical (9:16)
+                // Calcular altura para que el mapa quepa perfectamente en pantalla
+                // La parte inferior debe quedar visible y la superior justo debajo del HUD
+                
+                // La cámara debe estar lo suficientemente alta para ver todo el ancho
+                const requiredHeightForWidth = (totalWidth / 2) / Math.tan(fov / 2) / aspect;
+                
+                // Añadir un poco más de altura para la perspectiva inclinada
+                cameraHeight = requiredHeightForWidth * 1.05;
+                
+                // Posición Z de la cámara (hacia el espectador)
+                // Esto crea el efecto de perspectiva donde abajo está más cerca
+                cameraZ = totalHeight * 0.5;
+                
+                // El punto de mira está centrado en Y pero ligeramente hacia arriba en Z
+                // Esto hace que la parte superior se vea más pequeña (más lejos)
+                lookAtY = 0;
+                lookAtZ = -totalHeight * 0.05;
+            } else {
+                // Desktop horizontal
+                const requiredHeightForWidth = (totalWidth / 2) / Math.tan(fov / 2) / aspect;
+                cameraHeight = requiredHeightForWidth * 1.1;
+                cameraZ = totalHeight * 0.4;
+                lookAtY = 0;
+                lookAtZ = -totalHeight * 0.05;
+            }
+            
+            camera.position.set(0, cameraHeight, cameraZ);
+            camera.lookAt(0, lookAtY, lookAtZ);
+            camera.aspect = aspect;
             camera.updateProjectionMatrix();
         }
 
@@ -1260,27 +1481,40 @@
             levelUpEl.classList.add('active');
             setTimeout(() => levelUpEl.classList.remove('active'), 1500);
 
-            // Store snake relative positions
+            // Store snake ABSOLUTE grid positions (not relative)
+            const snakeGridPositions = snake.map(seg => ({
+                gx: seg.userData.gridX,
+                gz: seg.userData.gridZ
+            }));
+            
+            // Store old grid size
             const oldGridWidth = gridWidth;
             const oldGridHeight = gridHeight;
-            const snakePositions = snake.map(seg => ({
-                relX: seg.userData.gridX / oldGridWidth,
-                relZ: seg.userData.gridZ / oldGridHeight
-            }));
 
             // Expand grid
             calculateGridSize();
+            
+            // Calculate how much the grid expanded
+            const deltaWidth = gridWidth - oldGridWidth;
+            const deltaHeight = gridHeight - oldGridHeight;
+            
+            // El mapa crece hacia ABAJO (Z positivo es abajo en pantalla)
+            // La serpiente y obstáculos existentes se mantienen arriba
+            // offsetX centra horizontalmente, offsetZ = 0 para que crezca hacia abajo
+            const offsetX = Math.floor(deltaWidth / 2);
+            const offsetZ = 0; // No desplazamos en Z, el mapa crece hacia abajo
+            
             createGrid();
             updateCamera();
 
-            // Reposition snake
+            // Reposition snake - se mantiene arriba (mismas coordenadas Z, solo ajuste X)
             snake.forEach(seg => scene.remove(seg));
             snake = [];
             
-            snakePositions.forEach((pos, i) => {
-                const newX = Math.floor(pos.relX * gridWidth);
-                const newZ = Math.floor(pos.relZ * gridHeight);
-                snake.push(createSnakeSegment(newX, newZ, i, snakePositions.length));
+            snakeGridPositions.forEach((pos, i) => {
+                const newX = pos.gx + offsetX;
+                const newZ = pos.gz; // Mantener Z sin cambios (arriba)
+                snake.push(createSnakeSegment(newX, newZ, i, snakeGridPositions.length));
             });
 
             // Mantener la orientación de la cabeza según la dirección actual
@@ -1294,30 +1528,97 @@
                 snake[0].rotation.y = 0;
             }
 
-            // Reposition existing obstacles
-            const oldObstaclePositions = obstacles.map(obs => ({
-                relX: obs.userData.gridX / oldGridWidth,
-                relZ: obs.userData.gridZ / oldGridHeight
+            // Reposition existing obstacles - también se mantienen arriba
+            const obstacleGridPositions = obstacles.map(obs => ({
+                gx: obs.userData.gridX,
+                gz: obs.userData.gridZ
             }));
             
             obstacles.forEach(obs => scene.remove(obs));
             obstacles = [];
             
-            oldObstaclePositions.forEach(pos => {
-                const gx = Math.floor(pos.relX * gridWidth);
-                const gz = Math.floor(pos.relZ * gridHeight);
+            obstacleGridPositions.forEach(pos => {
+                const newGx = pos.gx + offsetX;
+                const newGz = pos.gz; // Mantener Z sin cambios (arriba)
                 
-                const group = createObstacleAt(gx, gz);
+                const group = createObstacleAt(newGx, newGz);
                 if (group) obstacles.push(group);
             });
 
-            // Add new obstacles
+            // Add new obstacles ONLY in the new bottom area
             for (let i = 0; i < CONFIG.OBSTACLE_PER_LEVEL; i++) {
-                createObstacle();
+                createObstacleInBottomZone(oldGridHeight, deltaHeight);
             }
 
             createNanobot();
             document.getElementById('level').textContent = level;
+        }
+        
+        // Función para crear obstáculos solo en la zona nueva de abajo
+        function createObstacleInBottomZone(oldHeight, deltaHeight) {
+            const group = new THREE.Group();
+
+            const height = 1 + Math.random() * 1.5;
+            const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
+            obstacleGeom.scale(1, height, 1);
+            
+            const obstacleMat = new THREE.MeshStandardMaterial({
+                color: 0xff3300,
+                metalness: 0.8,
+                roughness: 0.2,
+                emissive: 0xff2200,
+                emissiveIntensity: 0.4
+            });
+            const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
+            obstacle.position.y = height * 0.35;
+            group.add(obstacle);
+
+            const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                transparent: true,
+                opacity: 0.6
+            });
+            const ring = new THREE.Mesh(ringGeom, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.05;
+            group.add(ring);
+
+            // Solo buscar posición en la zona NUEVA (parte inferior del mapa)
+            let gx, gz, valid;
+            let attempts = 0;
+            do {
+                gx = Math.floor(Math.random() * gridWidth);
+                // Solo en la zona nueva de abajo (desde oldHeight hasta gridHeight)
+                gz = oldHeight + Math.floor(Math.random() * deltaHeight);
+                valid = true;
+                
+                for (const seg of snake) {
+                    if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
+                        valid = false;
+                        break;
+                    }
+                }
+                for (const obs of obstacles) {
+                    if (obs.userData.gridX === gx && obs.userData.gridZ === gz) {
+                        valid = false;
+                        break;
+                    }
+                }
+                if (nanobot && nanobot.userData.gridX === gx && nanobot.userData.gridZ === gz) {
+                    valid = false;
+                }
+                attempts++;
+            } while (!valid && attempts < 100);
+
+            if (attempts >= 100) return;
+
+            const worldPos = gridToWorld(gx, gz);
+            group.position.set(worldPos.x, 0, worldPos.z);
+            group.userData = { gridX: gx, gridZ: gz };
+
+            scene.add(group);
+            obstacles.push(group);
         }
 
         function createObstacleAt(gx, gz) {
@@ -1609,6 +1910,119 @@
             document.getElementById('gameOverScreen').style.display = 'none';
             initGame();
         });
+
+        // D-Pad controls
+        const dpadButtons = {
+            btnUp: { x: 0, y: -1 },
+            btnDown: { x: 0, y: 1 },
+            btnLeft: { x: -1, y: 0 },
+            btnRight: { x: 1, y: 0 }
+        };
+
+        Object.entries(dpadButtons).forEach(([id, dir]) => {
+            const btn = document.getElementById(id);
+            
+            // Touch events
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!gameRunning) return;
+                btn.classList.add('active');
+                
+                // Verificar que no vaya en dirección opuesta
+                if (dir.x !== 0 && direction.x !== -dir.x) {
+                    nextDirection = { ...dir };
+                } else if (dir.y !== 0 && direction.y !== -dir.y) {
+                    nextDirection = { ...dir };
+                }
+            }, { passive: false });
+
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                btn.classList.remove('active');
+            }, { passive: false });
+
+            // Mouse events (for desktop testing)
+            btn.addEventListener('mousedown', (e) => {
+                if (!gameRunning) return;
+                btn.classList.add('active');
+                
+                if (dir.x !== 0 && direction.x !== -dir.x) {
+                    nextDirection = { ...dir };
+                } else if (dir.y !== 0 && direction.y !== -dir.y) {
+                    nextDirection = { ...dir };
+                }
+            });
+
+            btn.addEventListener('mouseup', () => {
+                btn.classList.remove('active');
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                btn.classList.remove('active');
+            });
+        });
+
+        // Turbo button
+        const turboBtn = document.getElementById('turboBtn');
+        
+        turboBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            turboBtn.classList.add('active');
+            currentSpeed = CONFIG.FAST_SPEED;
+        }, { passive: false });
+
+        turboBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            turboBtn.classList.remove('active');
+            currentSpeed = CONFIG.SNAKE_SPEED;
+        }, { passive: false });
+
+        turboBtn.addEventListener('touchcancel', (e) => {
+            turboBtn.classList.remove('active');
+            currentSpeed = CONFIG.SNAKE_SPEED;
+        }, { passive: false });
+
+        // Mouse events for turbo (desktop testing)
+        turboBtn.addEventListener('mousedown', (e) => {
+            turboBtn.classList.add('active');
+            currentSpeed = CONFIG.FAST_SPEED;
+        });
+
+        turboBtn.addEventListener('mouseup', () => {
+            turboBtn.classList.remove('active');
+            currentSpeed = CONFIG.SNAKE_SPEED;
+        });
+
+        turboBtn.addEventListener('mouseleave', () => {
+            turboBtn.classList.remove('active');
+            currentSpeed = CONFIG.SNAKE_SPEED;
+        });
+
+        // Hide touch controls on start screen, show during game
+        function updateTouchControlsVisibility() {
+            const touchControls = document.getElementById('touchControls');
+            const startScreen = document.getElementById('startScreen');
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            
+            if (startScreen.style.display !== 'none' || gameOverScreen.style.display !== 'none') {
+                touchControls.style.display = 'none';
+            } else {
+                touchControls.style.display = 'flex';
+            }
+        }
+
+        // Override button clicks to also update touch controls visibility
+        const originalStartClick = document.getElementById('startBtn').onclick;
+        document.getElementById('startBtn').addEventListener('click', () => {
+            setTimeout(updateTouchControlsVisibility, 100);
+        });
+
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            setTimeout(updateTouchControlsVisibility, 100);
+        });
+
+        // Initially hide touch controls
+        document.getElementById('touchControls').style.display = 'none';
 
         // Initialize
         initThree();
