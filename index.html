@@ -29,6 +29,7 @@
             height: 100%;
         }
 
+        /* HUD del juego */
         #ui {
             position: fixed;
             top: 10px;
@@ -109,13 +110,37 @@
             transition: width 0.1s linear;
         }
 
-        #startScreen, #gameOverScreen {
+        /* Botón de pausa */
+        .pause-btn {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 15px;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 150;
+            transition: all 0.3s ease;
+        }
+
+        .pause-btn:hover, .pause-btn:active {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+
+        /* Pantallas de menú */
+        .menu-screen {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(ellipse at center, rgba(0, 50, 80, 0.95), rgba(0, 10, 20, 0.98));
+            background: radial-gradient(ellipse at center, rgba(0, 50, 80, 0.97), rgba(0, 10, 20, 0.99));
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -124,7 +149,7 @@
             padding: 20px;
         }
 
-        #gameOverScreen {
+        .menu-screen.hidden {
             display: none;
         }
 
@@ -141,6 +166,10 @@
             animation: titlePulse 2s ease-in-out infinite;
         }
 
+        .title-small {
+            font-size: clamp(20px, 5vw, 40px);
+        }
+
         @keyframes titlePulse {
             0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.8)); }
             50% { filter: drop-shadow(0 0 40px rgba(255, 0, 255, 0.9)); }
@@ -155,40 +184,190 @@
             text-align: center;
         }
 
-        .start-btn {
-            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
-            border: 2px solid #0ff;
+        /* Botones del menú */
+        .menu-btn {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(255, 0, 255, 0.15));
+            border: 2px solid rgba(0, 255, 255, 0.5);
             color: #0ff;
             padding: 15px 40px;
-            font-size: clamp(14px, 4vw, 24px);
+            font-size: clamp(12px, 3.5vw, 20px);
             font-family: 'Orbitron', sans-serif;
             font-weight: 700;
             cursor: pointer;
             border-radius: 30px;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
+            margin: 8px 0;
+            min-width: 250px;
+            text-align: center;
         }
 
-        .start-btn:hover, .start-btn:active {
-            background: linear-gradient(135deg, rgba(0, 255, 255, 0.4), rgba(255, 0, 255, 0.4));
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+        .menu-btn:hover, .menu-btn:active {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
             transform: scale(1.05);
         }
 
-        .controls-info {
-            margin-top: 30px;
-            color: rgba(255, 255, 255, 0.6);
+        .menu-btn.secondary {
+            background: linear-gradient(135deg, rgba(255, 100, 0, 0.15), rgba(255, 0, 100, 0.15));
+            border-color: rgba(255, 100, 50, 0.5);
+            color: #ff6633;
+        }
+
+        .menu-btn.secondary:hover, .menu-btn.secondary:active {
+            background: linear-gradient(135deg, rgba(255, 100, 0, 0.3), rgba(255, 0, 100, 0.3));
+            box-shadow: 0 0 30px rgba(255, 100, 0, 0.5);
+        }
+
+        .menu-btn.danger {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.15), rgba(150, 0, 50, 0.15));
+            border-color: rgba(255, 50, 50, 0.5);
+            color: #ff4444;
+        }
+
+        .menu-btn.danger:hover, .menu-btn.danger:active {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.3), rgba(150, 0, 50, 0.3));
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+        }
+
+        .menu-btn.small {
+            padding: 10px 25px;
             font-size: clamp(10px, 2.5vw, 14px);
-            text-align: center;
-            line-height: 2;
+            min-width: 150px;
         }
 
-        .controls-info span {
+        /* Selector de velocidad */
+        .speed-selector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .speed-label {
+            color: rgba(0, 255, 255, 0.8);
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(12px, 3vw, 16px);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .speed-value {
+            color: #f0f;
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(14px, 3.5vw, 20px);
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #f0f;
+        }
+
+        .speed-slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(90deg, #0f0, #ff0, #f00);
+            border-radius: 4px;
+            outline: none;
+            opacity: 0.9;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #0ff, #f0f);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+            border: 2px solid #fff;
+        }
+
+        .speed-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #0ff, #f0f);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+            border: 2px solid #fff;
+        }
+
+        /* Lista de récords */
+        .records-list {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(0, 50, 80, 0.3));
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 350px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.05), rgba(255, 0, 255, 0.05));
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.15);
+        }
+
+        .record-item.gold {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 180, 0, 0.1));
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        .record-item.silver {
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.2), rgba(150, 150, 150, 0.1));
+            border-color: rgba(192, 192, 192, 0.5);
+        }
+
+        .record-item.bronze {
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.2), rgba(180, 100, 30, 0.1));
+            border-color: rgba(205, 127, 50, 0.5);
+        }
+
+        .record-rank {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(14px, 3vw, 18px);
+            font-weight: 700;
             color: #0ff;
-            font-weight: bold;
+            min-width: 30px;
         }
 
+        .record-score {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(16px, 4vw, 22px);
+            font-weight: 700;
+            color: #f0f;
+            text-shadow: 0 0 10px #f0f;
+        }
+
+        .record-date {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(8px, 2vw, 10px);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .no-records {
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(12px, 3vw, 16px);
+            text-align: center;
+            padding: 30px;
+        }
+
+        /* Final score */
         .final-score {
             font-size: clamp(24px, 6vw, 48px);
             color: #f0f;
@@ -197,6 +376,21 @@
             text-shadow: 0 0 20px #f0f;
         }
 
+        .new-record {
+            color: #ffd700;
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(14px, 3.5vw, 20px);
+            text-shadow: 0 0 15px #ffd700;
+            animation: recordPulse 1s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes recordPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        /* Scanlines */
         .scanlines {
             position: fixed;
             top: 0;
@@ -258,14 +452,18 @@
             bottom: 20px;
             left: 20px;
             right: 20px;
-            display: flex;
+            display: none;
             justify-content: space-between;
             align-items: flex-end;
             pointer-events: none;
             z-index: 150;
         }
 
-        /* D-Pad (Flechas direccionales) */
+        .touch-controls.visible {
+            display: flex;
+        }
+
+        /* D-Pad */
         .dpad {
             position: relative;
             width: 140px;
@@ -298,31 +496,24 @@
             color: rgba(0, 255, 255, 0.7);
         }
 
-        .dpad-up {
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-        }
+        .dpad-up { top: 0; left: 50%; transform: translateX(-50%); }
+        .dpad-down { bottom: 0; left: 50%; transform: translateX(-50%); }
+        .dpad-left { left: 0; top: 50%; transform: translateY(-50%); }
+        .dpad-right { right: 0; top: 50%; transform: translateY(-50%); }
 
-        .dpad-down {
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .dpad-left {
-            left: 0;
+        .dpad-center {
+            position: absolute;
             top: 50%;
-            transform: translateY(-50%);
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 255, 255, 0.08);
+            border: 1px solid rgba(0, 255, 255, 0.15);
+            border-radius: 50%;
         }
 
-        .dpad-right {
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        /* Botón Turbo con forma de huevo */
+        /* Botón Turbo */
         .turbo-container {
             pointer-events: auto;
             display: flex;
@@ -404,18 +595,20 @@
             margin-top: 4px;
             letter-spacing: 1px;
         }
-        
-        .dpad-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 30px;
-            height: 30px;
-            background: rgba(0, 255, 255, 0.08);
-            border: 1px solid rgba(0, 255, 255, 0.15);
-            border-radius: 50%;
+
+        .controls-info {
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: clamp(10px, 2.5vw, 14px);
+            text-align: center;
+            line-height: 2;
         }
+
+        .controls-info span {
+            color: #0ff;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
@@ -423,7 +616,8 @@
     
     <div class="scanlines"></div>
     
-    <div id="ui">
+    <!-- HUD del juego -->
+    <div id="ui" class="hidden">
         <div class="hud-panel">
             <div class="score-label">NANOBOTS</div>
             <div class="score-display" id="score">0</div>
@@ -438,7 +632,9 @@
         </div>
     </div>
 
-    <div class="nanobot-timer">
+    <button class="pause-btn hidden" id="pauseBtn">⏸ PAUSA</button>
+
+    <div class="nanobot-timer hidden" id="nanobotTimer">
         <div>NANOBOT</div>
         <div class="timer-bar">
             <div class="timer-fill" id="timerFill"></div>
@@ -446,11 +642,10 @@
     </div>
 
     <div class="level-up" id="levelUp">¡NIVEL COMPLETADO!</div>
-    <div class="swipe-hint">DESLIZA O USA LAS FLECHAS</div>
+    <div class="swipe-hint hidden" id="swipeHint">DESLIZA O USA LAS FLECHAS</div>
 
     <!-- Controles táctiles -->
     <div class="touch-controls" id="touchControls">
-        <!-- D-Pad izquierdo -->
         <div class="dpad">
             <div class="dpad-center"></div>
             <button class="dpad-btn dpad-up" id="btnUp">▲</button>
@@ -459,7 +654,6 @@
             <button class="dpad-btn dpad-right" id="btnRight">▶</button>
         </div>
 
-        <!-- Botón Turbo (huevo) derecho -->
         <div class="turbo-container">
             <button class="turbo-btn" id="turboBtn">
                 <span class="turbo-icon">⚡</span>
@@ -469,10 +663,16 @@
         </div>
     </div>
 
-    <div id="startScreen">
+    <!-- MENÚ PRINCIPAL -->
+    <div class="menu-screen" id="mainMenu">
         <div class="title">CYBER SNAKE</div>
         <div class="subtitle">NANOBOT HUNTER</div>
-        <button class="start-btn" id="startBtn">INICIAR</button>
+        
+        <button class="menu-btn" id="btnPlay">🎮 JUGAR</button>
+        <button class="menu-btn secondary" id="btnSpeed">⚡ VELOCIDAD</button>
+        <button class="menu-btn" id="btnRecords">🏆 RÉCORDS</button>
+        <button class="menu-btn danger" id="btnExit">🚪 SALIR</button>
+        
         <div class="controls-info">
             <span>↑ ↓ ← →</span> o <span>W A S D</span> para mover<br>
             <span>DESLIZA</span> o usa el <span>D-PAD</span> táctil<br>
@@ -480,16 +680,68 @@
         </div>
     </div>
 
-    <div id="gameOverScreen">
-        <div class="title" style="font-size: clamp(24px, 6vw, 48px);">GAME OVER</div>
+    <!-- MENÚ DE VELOCIDAD -->
+    <div class="menu-screen hidden" id="speedMenu">
+        <div class="title title-small">⚡ VELOCIDAD</div>
+        
+        <div class="speed-selector">
+            <div class="speed-label">Velocidad de la serpiente</div>
+            <div class="speed-value" id="speedValueDisplay">NORMAL</div>
+            <input type="range" min="1" max="5" value="3" class="speed-slider" id="speedSlider">
+        </div>
+        
+        <button class="menu-btn" id="btnSpeedBack">← VOLVER</button>
+    </div>
+
+    <!-- MENÚ DE RÉCORDS -->
+    <div class="menu-screen hidden" id="recordsMenu">
+        <div class="title title-small">🏆 RÉCORDS</div>
+        
+        <div class="records-list" id="recordsList">
+            <div class="no-records">No hay récords todavía</div>
+        </div>
+        
+        <button class="menu-btn danger small" id="btnClearRecords">🗑 BORRAR RÉCORDS</button>
+        <button class="menu-btn" id="btnRecordsBack">← VOLVER</button>
+    </div>
+
+    <!-- MENÚ DE PAUSA -->
+    <div class="menu-screen hidden" id="pauseMenu">
+        <div class="title title-small">⏸ PAUSA</div>
+        
+        <div class="speed-selector">
+            <div class="speed-label">Velocidad de la serpiente</div>
+            <div class="speed-value" id="pauseSpeedValueDisplay">NORMAL</div>
+            <input type="range" min="1" max="5" value="3" class="speed-slider" id="pauseSpeedSlider">
+        </div>
+        
+        <button class="menu-btn" id="btnResume">▶ CONTINUAR</button>
+        <button class="menu-btn secondary" id="btnRestartPause">🔄 REINICIAR</button>
+        <button class="menu-btn danger" id="btnExitToMenu">🏠 MENÚ PRINCIPAL</button>
+    </div>
+
+    <!-- PANTALLA GAME OVER -->
+    <div class="menu-screen hidden" id="gameOverScreen">
+        <div class="title title-small">💀 GAME OVER</div>
+        <div class="new-record hidden" id="newRecordText">🎉 ¡NUEVO RÉCORD! 🎉</div>
         <div class="final-score">SCORE: <span id="finalScore">0</span></div>
-        <button class="start-btn" id="restartBtn">REINICIAR</button>
+        
+        <button class="menu-btn" id="btnRestart">🔄 REINICIAR</button>
+        <button class="menu-btn secondary" id="btnGameOverMenu">🏠 MENÚ PRINCIPAL</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Game Configuration
-        const CONFIG = {
+        // ===== CONFIGURACIÓN =====
+        const SPEED_SETTINGS = {
+            1: { name: 'MUY LENTA', speed: 400, fast: 130 },
+            2: { name: 'LENTA', speed: 300, fast: 100 },
+            3: { name: 'NORMAL', speed: 220, fast: 70 },
+            4: { name: 'RÁPIDA', speed: 150, fast: 50 },
+            5: { name: 'MUY RÁPIDA', speed: 100, fast: 35 }
+        };
+
+        let CONFIG = {
             CELL_SIZE: 1,
             SNAKE_SPEED: 220,
             FAST_SPEED: 70,
@@ -498,7 +750,7 @@
             OBSTACLE_PER_LEVEL: 3
         };
 
-        // Game State
+        // ===== ESTADO DEL JUEGO =====
         let scene, camera, renderer;
         let snake = [];
         let direction = { x: 1, y: 0 };
@@ -512,11 +764,13 @@
         let level = 1;
         let gridWidth, gridHeight;
         let gameRunning = false;
+        let gamePaused = false;
         let lastMoveTime = 0;
         let currentSpeed = CONFIG.SNAKE_SPEED;
+        let baseSpeed = CONFIG.SNAKE_SPEED;
         let gridFloor = null;
-        let backgroundStars = null;
         let nebulaParticles = [];
+        let currentSpeedLevel = 3;
 
         // Touch controls
         let touchStartX = 0;
@@ -530,20 +784,126 @@
             0x0055ff, 0x0044ff, 0x0033ff, 0x0022ff, 0x0011ff
         ];
 
+        // ===== GESTIÓN DE RÉCORDS =====
+        function getRecords() {
+            const records = localStorage.getItem('cyberSnakeRecords');
+            return records ? JSON.parse(records) : [];
+        }
+
+        function saveRecord(score) {
+            const records = getRecords();
+            const newRecord = {
+                score: score,
+                date: new Date().toLocaleDateString('es-ES'),
+                level: level
+            };
+            records.push(newRecord);
+            records.sort((a, b) => b.score - a.score);
+            const top10 = records.slice(0, 10);
+            localStorage.setItem('cyberSnakeRecords', JSON.stringify(top10));
+            return top10[0].score === score && records.length > 1 || (records.length === 1);
+        }
+
+        function clearRecords() {
+            localStorage.removeItem('cyberSnakeRecords');
+            updateRecordsList();
+        }
+
+        function updateRecordsList() {
+            const records = getRecords();
+            const container = document.getElementById('recordsList');
+            
+            if (records.length === 0) {
+                container.innerHTML = '<div class="no-records">No hay récords todavía</div>';
+                return;
+            }
+
+            let html = '';
+            records.forEach((record, index) => {
+                let medalClass = '';
+                let medal = '';
+                if (index === 0) { medalClass = 'gold'; medal = '🥇'; }
+                else if (index === 1) { medalClass = 'silver'; medal = '🥈'; }
+                else if (index === 2) { medalClass = 'bronze'; medal = '🥉'; }
+                else { medal = `#${index + 1}`; }
+
+                html += `
+                    <div class="record-item ${medalClass}">
+                        <span class="record-rank">${medal}</span>
+                        <span class="record-score">${record.score}</span>
+                        <span class="record-date">Nv.${record.level || 1} - ${record.date}</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // ===== GESTIÓN DE MENÚS =====
+        function showMenu(menuId) {
+            document.querySelectorAll('.menu-screen').forEach(menu => {
+                menu.classList.add('hidden');
+            });
+            document.getElementById(menuId).classList.remove('hidden');
+        }
+
+        function hideAllMenus() {
+            document.querySelectorAll('.menu-screen').forEach(menu => {
+                menu.classList.add('hidden');
+            });
+        }
+
+        function showGameUI() {
+            document.getElementById('ui').classList.remove('hidden');
+            document.getElementById('pauseBtn').classList.remove('hidden');
+            document.getElementById('nanobotTimer').classList.remove('hidden');
+            document.getElementById('swipeHint').classList.remove('hidden');
+            document.getElementById('touchControls').classList.add('visible');
+        }
+
+        function hideGameUI() {
+            document.getElementById('ui').classList.add('hidden');
+            document.getElementById('pauseBtn').classList.add('hidden');
+            document.getElementById('nanobotTimer').classList.add('hidden');
+            document.getElementById('swipeHint').classList.add('hidden');
+            document.getElementById('touchControls').classList.remove('visible');
+        }
+
+        function updateSpeedDisplay(value, displayId) {
+            const setting = SPEED_SETTINGS[value];
+            document.getElementById(displayId).textContent = setting.name;
+        }
+
+        function setGameSpeed(level) {
+            currentSpeedLevel = level;
+            const setting = SPEED_SETTINGS[level];
+            CONFIG.SNAKE_SPEED = setting.speed;
+            CONFIG.FAST_SPEED = setting.fast;
+            baseSpeed = setting.speed;
+            currentSpeed = baseSpeed;
+            localStorage.setItem('cyberSnakeSpeed', level);
+        }
+
+        function loadSavedSpeed() {
+            const saved = localStorage.getItem('cyberSnakeSpeed');
+            if (saved) {
+                currentSpeedLevel = parseInt(saved);
+                setGameSpeed(currentSpeedLevel);
+                document.getElementById('speedSlider').value = currentSpeedLevel;
+                document.getElementById('pauseSpeedSlider').value = currentSpeedLevel;
+                updateSpeedDisplay(currentSpeedLevel, 'speedValueDisplay');
+                updateSpeedDisplay(currentSpeedLevel, 'pauseSpeedValueDisplay');
+            }
+        }
+
+        // ===== THREE.JS SETUP =====
         function calculateGridSize() {
             const aspect = window.innerWidth / window.innerHeight;
-            // Base size que crece con el nivel
-            // Empezamos con celdas MUY GRANDES (pocas celdas)
             const baseSize = 7 + (level - 1) * 3;
             
             if (aspect < 1) {
-                // Vertical (mobile 9:16)
-                // Queremos que el ancho del grid ocupe casi toda la pantalla
                 gridWidth = Math.round(baseSize * 0.85);
-                // La altura se calcula proporcionalmente pero dejando espacio arriba para HUD
                 gridHeight = Math.round(gridWidth / aspect * 0.82);
             } else {
-                // Horizontal (desktop)
                 gridHeight = baseSize;
                 gridWidth = Math.round(baseSize * aspect * 0.85);
             }
@@ -554,7 +914,6 @@
             scene.background = new THREE.Color(0x000510);
 
             const aspect = window.innerWidth / window.innerHeight;
-            // Usar cámara de perspectiva para efecto 3D inclinado
             camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
             camera.position.set(0, 25, 12);
             camera.lookAt(0, 0, 0);
@@ -564,7 +923,6 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('gameCanvas').appendChild(renderer.domElement);
 
-            // Calcular tamaño inicial del grid para posicionar cámara
             calculateGridSize();
 
             // Lighting
@@ -589,38 +947,21 @@
 
         function updateCamera() {
             const aspect = window.innerWidth / window.innerHeight;
-            
-            // Calculate grid dimensions
             const totalWidth = gridWidth * CONFIG.CELL_SIZE;
             const totalHeight = gridHeight * CONFIG.CELL_SIZE;
             
-            // FOV para perspectiva
             camera.fov = 55;
             const fov = camera.fov * (Math.PI / 180);
             
             let cameraHeight, cameraZ, lookAtY, lookAtZ;
             
             if (aspect < 1) {
-                // Móvil vertical (9:16)
-                // Calcular altura para que el mapa quepa perfectamente en pantalla
-                // La parte inferior debe quedar visible y la superior justo debajo del HUD
-                
-                // La cámara debe estar lo suficientemente alta para ver todo el ancho
                 const requiredHeightForWidth = (totalWidth / 2) / Math.tan(fov / 2) / aspect;
-                
-                // Añadir un poco más de altura para la perspectiva inclinada
                 cameraHeight = requiredHeightForWidth * 1.05;
-                
-                // Posición Z de la cámara (hacia el espectador)
-                // Esto crea el efecto de perspectiva donde abajo está más cerca
                 cameraZ = totalHeight * 0.5;
-                
-                // El punto de mira está centrado en Y pero ligeramente hacia arriba en Z
-                // Esto hace que la parte superior se vea más pequeña (más lejos)
                 lookAtY = 0;
                 lookAtZ = -totalHeight * 0.05;
             } else {
-                // Desktop horizontal
                 const requiredHeightForWidth = (totalWidth / 2) / Math.tan(fov / 2) / aspect;
                 cameraHeight = requiredHeightForWidth * 1.1;
                 cameraZ = totalHeight * 0.4;
@@ -635,7 +976,6 @@
         }
 
         function createBackground() {
-            // Dynamic plasma/energy field background
             const bgGeometry = new THREE.PlaneGeometry(500, 500);
             const bgMaterial = new THREE.ShaderMaterial({
                 uniforms: {
@@ -670,8 +1010,6 @@
                         
                         vec3 col = mix(color1, color2, pattern);
                         col = mix(col, color3, sin(d * 4.0 + time * 0.2) * 0.5 + 0.5);
-                        
-                        // Add subtle glow in center
                         col += vec3(0.0, 0.05, 0.1) * (1.0 - d * 0.5);
                         
                         gl_FragColor = vec4(col, 1.0);
@@ -684,13 +1022,12 @@
             bgPlane.userData.isBackground = true;
             scene.add(bgPlane);
 
-            // Animated starfield - multiple layers
+            // Stars
             for (let layer = 0; layer < 3; layer++) {
                 const starsGeom = new THREE.BufferGeometry();
                 const starsCount = 1500;
                 const positions = new Float32Array(starsCount * 3);
                 const colors = new Float32Array(starsCount * 3);
-                const sizes = new Float32Array(starsCount);
 
                 for (let i = 0; i < starsCount; i++) {
                     positions[i * 3] = (Math.random() - 0.5) * 300;
@@ -707,7 +1044,6 @@
                     } else {
                         colors[i * 3] = 1; colors[i * 3 + 1] = 1; colors[i * 3 + 2] = 1;
                     }
-                    sizes[i] = 0.1 + Math.random() * 0.4;
                 }
 
                 starsGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -724,10 +1060,9 @@
                 stars.userData.rotSpeed = 0.0002 * (layer + 1);
                 stars.userData.isStarLayer = true;
                 scene.add(stars);
-                if (layer === 0) backgroundStars = stars;
             }
 
-            // Floating energy orbs
+            // Floating orbs
             for (let i = 0; i < 25; i++) {
                 const orbGeom = new THREE.SphereGeometry(0.3 + Math.random() * 0.5, 16, 16);
                 const hue = Math.random();
@@ -740,11 +1075,7 @@
                 
                 const radius = 20 + Math.random() * 40;
                 const angle = Math.random() * Math.PI * 2;
-                orb.position.set(
-                    Math.cos(angle) * radius,
-                    -2 - Math.random() * 3,
-                    Math.sin(angle) * radius
-                );
+                orb.position.set(Math.cos(angle) * radius, -2 - Math.random() * 3, Math.sin(angle) * radius);
                 orb.userData = {
                     angle: angle,
                     radius: radius,
@@ -756,47 +1087,15 @@
                 scene.add(orb);
                 nebulaParticles.push(orb);
             }
-
-            // Electric arc lines
-            for (let i = 0; i < 8; i++) {
-                const points = [];
-                const startAngle = (i / 8) * Math.PI * 2;
-                const radius = 35;
-                
-                for (let j = 0; j <= 20; j++) {
-                    const t = j / 20;
-                    const angle = startAngle + t * 0.5;
-                    points.push(new THREE.Vector3(
-                        Math.cos(angle) * radius * (1 + Math.sin(t * Math.PI) * 0.3),
-                        -1 - Math.sin(t * Math.PI * 3) * 0.5,
-                        Math.sin(angle) * radius * (1 + Math.sin(t * Math.PI) * 0.3)
-                    ));
-                }
-                
-                const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
-                const lineMat = new THREE.LineBasicMaterial({
-                    color: new THREE.Color().setHSL(0.5 + i * 0.05, 1, 0.5),
-                    transparent: true,
-                    opacity: 0.4
-                });
-                const line = new THREE.Line(lineGeom, lineMat);
-                line.userData.baseAngle = startAngle;
-                line.userData.isArc = true;
-                scene.add(line);
-            }
         }
 
         function createGrid() {
-            if (gridFloor) {
-                scene.remove(gridFloor);
-            }
+            if (gridFloor) scene.remove(gridFloor);
 
             gridFloor = new THREE.Group();
-
             const totalWidth = gridWidth * CONFIG.CELL_SIZE;
             const totalHeight = gridHeight * CONFIG.CELL_SIZE;
 
-            // Main floor with gradient shader
             const floorGeom = new THREE.PlaneGeometry(totalWidth, totalHeight);
             const floorMat = new THREE.ShaderMaterial({
                 uniforms: {
@@ -820,25 +1119,14 @@
                         vec2 gridLines = abs(fract(grid - 0.5) - 0.5) / fwidth(grid);
                         float line = min(gridLines.x, gridLines.y);
                         
-                        // Base color with radial gradient
                         float dist = length(vUv - 0.5);
-                        vec3 baseColor = mix(
-                            vec3(0.02, 0.04, 0.08),
-                            vec3(0.0, 0.01, 0.03),
-                            dist * 1.5
-                        );
+                        vec3 baseColor = mix(vec3(0.02, 0.04, 0.08), vec3(0.0, 0.01, 0.03), dist * 1.5);
                         
-                        // Animated pulse waves
                         float pulse = sin(dist * 20.0 - time * 2.0) * 0.5 + 0.5;
                         pulse *= (1.0 - dist) * 0.3;
                         
-                        // Grid glow
                         float gridGlow = 1.0 - min(line, 1.0);
-                        vec3 gridColor = mix(
-                            vec3(0.0, 0.8, 1.0),
-                            vec3(1.0, 0.0, 1.0),
-                            sin(time * 0.5 + dist * 3.0) * 0.5 + 0.5
-                        );
+                        vec3 gridColor = mix(vec3(0.0, 0.8, 1.0), vec3(1.0, 0.0, 1.0), sin(time * 0.5 + dist * 3.0) * 0.5 + 0.5);
                         
                         vec3 finalColor = baseColor + gridColor * gridGlow * 0.4 + vec3(0.0, pulse * 0.3, pulse * 0.5);
                         
@@ -853,7 +1141,6 @@
             floor.userData.isFloor = true;
             gridFloor.add(floor);
 
-            // Animated edge border
             const edgeGeom = new THREE.BufferGeometry().setFromPoints([
                 new THREE.Vector3(-totalWidth/2, 0.01, -totalHeight/2),
                 new THREE.Vector3(totalWidth/2, 0.01, -totalHeight/2),
@@ -861,16 +1148,11 @@
                 new THREE.Vector3(-totalWidth/2, 0.01, totalHeight/2),
                 new THREE.Vector3(-totalWidth/2, 0.01, -totalHeight/2)
             ]);
-            const edgeMat = new THREE.LineBasicMaterial({ 
-                color: 0x00ffff, 
-                transparent: true, 
-                opacity: 0.8
-            });
+            const edgeMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 });
             const edge = new THREE.Line(edgeGeom, edgeMat);
             edge.userData.isEdge = true;
             gridFloor.add(edge);
 
-            // Corner markers
             const corners = [
                 [-totalWidth/2, -totalHeight/2],
                 [totalWidth/2, -totalHeight/2],
@@ -916,88 +1198,47 @@
             const baseRadius = 0.35 * sizeFactor;
 
             if (isHead) {
-                // ===== CABEZA DE SERPIENTE ESTILO KAA =====
-                
-                // Cabeza principal - forma triangular/ovalada de serpiente
                 const headGroup = new THREE.Group();
                 
-                // Base de la cabeza (forma de gota alargada)
                 const headGeom = new THREE.SphereGeometry(0.38, 24, 18);
-                headGeom.scale(0.9, 0.55, 1.3); // Más alargada y aplanada
+                headGeom.scale(0.9, 0.55, 1.3);
                 const headMat = new THREE.MeshStandardMaterial({
-                    color: 0x00ddaa,
-                    metalness: 0.4,
-                    roughness: 0.3,
-                    emissive: 0x00ffcc,
-                    emissiveIntensity: 0.15
+                    color: 0x00ddaa, metalness: 0.4, roughness: 0.3,
+                    emissive: 0x00ffcc, emissiveIntensity: 0.15
                 });
                 const headBase = new THREE.Mesh(headGeom, headMat);
                 headBase.position.y = 0.22;
                 headGroup.add(headBase);
                 
-                // Hocico puntiagudo
                 const snoutGeom = new THREE.ConeGeometry(0.22, 0.35, 16);
                 snoutGeom.scale(0.8, 1, 1.2);
                 const snoutMat = new THREE.MeshStandardMaterial({
-                    color: 0x00eebb,
-                    metalness: 0.3,
-                    roughness: 0.4,
-                    emissive: 0x00ffdd,
-                    emissiveIntensity: 0.1
+                    color: 0x00eebb, metalness: 0.3, roughness: 0.4,
+                    emissive: 0x00ffdd, emissiveIntensity: 0.1
                 });
                 const snout = new THREE.Mesh(snoutGeom, snoutMat);
                 snout.rotation.x = Math.PI / 2;
                 snout.position.set(0, 0.18, 0.42);
                 headGroup.add(snout);
                 
-                // Cejas/crestas sobre los ojos (aspecto amenazante)
-                const browGeom = new THREE.BoxGeometry(0.18, 0.06, 0.12);
-                const browMat = new THREE.MeshStandardMaterial({
-                    color: 0x008866,
-                    metalness: 0.5,
-                    roughness: 0.3
-                });
-                
-                const leftBrow = new THREE.Mesh(browGeom, browMat);
-                leftBrow.position.set(0.18, 0.38, 0.15);
-                leftBrow.rotation.z = -0.3;
-                leftBrow.rotation.y = 0.2;
-                headGroup.add(leftBrow);
-                
-                const rightBrow = new THREE.Mesh(browGeom, browMat);
-                rightBrow.position.set(-0.18, 0.38, 0.15);
-                rightBrow.rotation.z = 0.3;
-                rightBrow.rotation.y = -0.2;
-                headGroup.add(rightBrow);
-                
-                // ===== OJOS HIPNÓTICOS ESTILO KAA =====
-                const eyeRadius = 0.14;
-                
-                // Función para crear un ojo hipnótico
+                // Eyes
                 function createHypnoticEye(xPos) {
                     const eyeGroup = new THREE.Group();
                     
-                    // Globo ocular (esfera blanca/amarillenta grande)
-                    const eyeballGeom = new THREE.SphereGeometry(eyeRadius, 32, 32);
+                    const eyeballGeom = new THREE.SphereGeometry(0.14, 32, 32);
                     const eyeballMat = new THREE.MeshStandardMaterial({
-                        color: 0xffffaa,
-                        metalness: 0.1,
-                        roughness: 0.2,
-                        emissive: 0xffff00,
-                        emissiveIntensity: 0.3
+                        color: 0xffffaa, metalness: 0.1, roughness: 0.2,
+                        emissive: 0xffff00, emissiveIntensity: 0.3
                     });
                     const eyeball = new THREE.Mesh(eyeballGeom, eyeballMat);
                     eyeGroup.add(eyeball);
                     
-                    // Espirales hipnóticas (múltiples anillos concéntricos)
                     const spiralColors = [0xff00ff, 0x00ffff, 0xff00ff, 0x00ffff, 0xff00ff];
                     for (let i = 0; i < 5; i++) {
-                        const ringRadius = eyeRadius * (0.9 - i * 0.15);
+                        const ringRadius = 0.14 * (0.9 - i * 0.15);
                         const spiralGeom = new THREE.TorusGeometry(ringRadius, 0.012, 8, 32);
                         const spiralMat = new THREE.MeshBasicMaterial({
-                            color: spiralColors[i],
-                            transparent: true,
-                            opacity: 0.9 - i * 0.1
+                            color: spiralColors[i], transparent: true, opacity: 0.9 - i * 0.1
                         });
                         const spiral = new THREE.Mesh(spiralGeom, spiralMat);
                         spiral.position.z = 0.01 + i * 0.008;
@@ -1006,36 +1247,11 @@
                         eyeGroup.add(spiral);
                     }
                     
-                    // Pupila central (punto negro con brillo)
                     const pupilGeom = new THREE.CircleGeometry(0.035, 16);
-                    const pupilMat = new THREE.MeshBasicMaterial({ 
-                        color: 0x000000,
-                        side: THREE.DoubleSide
-                    });
+                    const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
                     const pupil = new THREE.Mesh(pupilGeom, pupilMat);
                     pupil.position.z = 0.06;
                     eyeGroup.add(pupil);
-                    
-                    // Brillo en la pupila
-                    const glintGeom = new THREE.CircleGeometry(0.015, 8);
-                    const glintMat = new THREE.MeshBasicMaterial({ 
-                        color: 0xffffff 
-                    });
-                    const glint = new THREE.Mesh(glintGeom, glintMat);
-                    glint.position.set(0.015, 0.015, 0.065);
-                    eyeGroup.add(glint);
-                    
-                    // Borde del ojo (párpado sutil)
-                    const lidGeom = new THREE.TorusGeometry(eyeRadius * 1.05, 0.02, 8, 32, Math.PI);
-                    const lidMat = new THREE.MeshStandardMaterial({
-                        color: 0x006644,
-                        metalness: 0.3,
-                        roughness: 0.5
-                    });
-                    const lid = new THREE.Mesh(lidGeom, lidMat);
-                    lid.rotation.z = Math.PI;
-                    lid.position.z = 0.01;
-                    eyeGroup.add(lid);
                     
                     eyeGroup.position.set(xPos, 0.32, 0.22);
                     eyeGroup.rotation.y = xPos > 0 ? 0.25 : -0.25;
@@ -1044,27 +1260,18 @@
                     return eyeGroup;
                 }
                 
-                // Crear ambos ojos
-                const leftEye = createHypnoticEye(0.2);
-                const rightEye = createHypnoticEye(-0.2);
-                headGroup.add(leftEye);
-                headGroup.add(rightEye);
+                headGroup.add(createHypnoticEye(0.2));
+                headGroup.add(createHypnoticEye(-0.2));
                 
-                // ===== LENGUA BÍFIDA =====
+                // Tongue
                 const tongueGroup = new THREE.Group();
-                
-                // Base de la lengua
                 const tongueBaseGeom = new THREE.CylinderGeometry(0.025, 0.02, 0.25, 8);
-                const tongueMat = new THREE.MeshBasicMaterial({ 
-                    color: 0xff3366,
-                    side: THREE.DoubleSide
-                });
+                const tongueMat = new THREE.MeshBasicMaterial({ color: 0xff3366, side: THREE.DoubleSide });
                 const tongueBase = new THREE.Mesh(tongueBaseGeom, tongueMat);
                 tongueBase.rotation.x = Math.PI / 2;
                 tongueBase.position.z = 0.12;
                 tongueGroup.add(tongueBase);
                 
-                // Bifurcación izquierda
                 const forkGeom = new THREE.ConeGeometry(0.018, 0.12, 6);
                 const leftFork = new THREE.Mesh(forkGeom, tongueMat);
                 leftFork.rotation.x = Math.PI / 2;
@@ -1072,7 +1279,6 @@
                 leftFork.position.set(0.04, 0, 0.28);
                 tongueGroup.add(leftFork);
                 
-                // Bifurcación derecha
                 const rightFork = new THREE.Mesh(forkGeom, tongueMat);
                 rightFork.rotation.x = Math.PI / 2;
                 rightFork.rotation.z = -0.4;
@@ -1083,43 +1289,7 @@
                 tongueGroup.userData.isTongue = true;
                 headGroup.add(tongueGroup);
                 
-                // ===== ESCAMAS DECORATIVAS EN LA CABEZA =====
-                const scaleGeom = new THREE.CircleGeometry(0.04, 6);
-                const scaleMat = new THREE.MeshStandardMaterial({
-                    color: 0x00aa88,
-                    metalness: 0.6,
-                    roughness: 0.3,
-                    side: THREE.DoubleSide
-                });
-                
-                // Escamas en la parte superior
-                for (let i = 0; i < 5; i++) {
-                    const scale = new THREE.Mesh(scaleGeom, scaleMat);
-                    scale.position.set(
-                        (Math.random() - 0.5) * 0.3,
-                        0.35 + Math.random() * 0.1,
-                        -0.1 - i * 0.08
-                    );
-                    scale.rotation.x = -Math.PI / 2 + Math.random() * 0.3;
-                    scale.rotation.z = Math.random() * Math.PI;
-                    headGroup.add(scale);
-                }
-                
-                // ===== FOSAS NASALES =====
-                const nostrilGeom = new THREE.CircleGeometry(0.025, 8);
-                const nostrilMat = new THREE.MeshBasicMaterial({ color: 0x003322 });
-                
-                const leftNostril = new THREE.Mesh(nostrilGeom, nostrilMat);
-                leftNostril.position.set(0.08, 0.22, 0.52);
-                leftNostril.rotation.y = 0.3;
-                headGroup.add(leftNostril);
-                
-                const rightNostril = new THREE.Mesh(nostrilGeom, nostrilMat);
-                rightNostril.position.set(-0.08, 0.22, 0.52);
-                rightNostril.rotation.y = -0.3;
-                headGroup.add(rightNostril);
-                
-                // ===== ANTENA CYBER (pequeña y sutil) =====
+                // Antenna
                 const antennaGeom = new THREE.CylinderGeometry(0.015, 0.025, 0.18, 8);
                 const antennaMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
                 const antenna = new THREE.Mesh(antennaGeom, antennaMat);
@@ -1127,11 +1297,7 @@
                 headGroup.add(antenna);
                 
                 const antennaTipGeom = new THREE.SphereGeometry(0.04, 8, 8);
-                const antennaTipMat = new THREE.MeshBasicMaterial({ 
-                    color: 0xff00ff,
-                    transparent: true,
-                    opacity: 0.9
-                });
+                const antennaTipMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.9 });
                 const antennaTip = new THREE.Mesh(antennaTipGeom, antennaTipMat);
                 antennaTip.position.set(0, 0.58, -0.15);
                 antennaTip.userData.isAntennaTip = true;
@@ -1140,27 +1306,20 @@
                 group.add(headGroup);
 
             } else {
-                // Body segments
                 const bodyGeom = new THREE.SphereGeometry(baseRadius, 12, 10);
                 bodyGeom.scale(1, 0.7, 1.1);
                 
                 const bodyMat = new THREE.MeshStandardMaterial({
-                    color: segmentColor,
-                    metalness: 0.6,
-                    roughness: 0.3,
-                    emissive: segmentColor,
-                    emissiveIntensity: 0.15
+                    color: segmentColor, metalness: 0.6, roughness: 0.3,
+                    emissive: segmentColor, emissiveIntensity: 0.15
                 });
                 const body = new THREE.Mesh(bodyGeom, bodyMat);
                 body.position.y = 0.2;
                 group.add(body);
 
-                // Glowing ring
                 const ringGeom = new THREE.TorusGeometry(baseRadius * 0.9, 0.02, 8, 16);
                 const ringMat = new THREE.MeshBasicMaterial({
-                    color: 0x00ffff,
-                    transparent: true,
-                    opacity: 0.5 - index * 0.02
+                    color: 0x00ffff, transparent: true, opacity: 0.5 - index * 0.02
                 });
                 const ring = new THREE.Mesh(ringGeom, ringMat);
                 ring.rotation.x = Math.PI / 2;
@@ -1181,25 +1340,19 @@
 
             const group = new THREE.Group();
 
-            // Core
             const coreGeom = new THREE.IcosahedronGeometry(0.3, 1);
             const coreMat = new THREE.MeshStandardMaterial({
-                color: 0xff00ff,
-                metalness: 0.9,
-                roughness: 0.1,
-                emissive: 0xff00ff,
-                emissiveIntensity: 0.8
+                color: 0xff00ff, metalness: 0.9, roughness: 0.1,
+                emissive: 0xff00ff, emissiveIntensity: 0.8
             });
             const core = new THREE.Mesh(coreGeom, coreMat);
             group.add(core);
 
-            // Orbiting rings
             for (let i = 0; i < 3; i++) {
                 const ringGeom = new THREE.TorusGeometry(0.45 + i * 0.1, 0.02, 8, 32);
                 const ringMat = new THREE.MeshBasicMaterial({
                     color: [0xff00ff, 0x00ffff, 0xffff00][i],
-                    transparent: true,
-                    opacity: 0.8
+                    transparent: true, opacity: 0.8
                 });
                 const ring = new THREE.Mesh(ringGeom, ringMat);
                 ring.rotation.x = Math.PI / 2 + i * 0.4;
@@ -1208,9 +1361,7 @@
                 group.add(ring);
             }
 
-            // Find valid position
-            let gx, gz, valid;
-            let attempts = 0;
+            let gx, gz, valid, attempts = 0;
             do {
                 gx = Math.floor(Math.random() * gridWidth);
                 gz = Math.floor(Math.random() * gridHeight);
@@ -1241,7 +1392,7 @@
             nanobotStartTime = Date.now();
             if (nanobotTimer) clearTimeout(nanobotTimer);
             nanobotTimer = setTimeout(() => {
-                if (nanobot && gameRunning) {
+                if (nanobot && gameRunning && !gamePaused) {
                     createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z, 0xff00ff);
                     createNanobot();
                 }
@@ -1256,37 +1407,28 @@
             obstacleGeom.scale(1, height, 1);
             
             const obstacleMat = new THREE.MeshStandardMaterial({
-                color: 0xff3300,
-                metalness: 0.8,
-                roughness: 0.2,
-                emissive: 0xff2200,
-                emissiveIntensity: 0.4
+                color: 0xff3300, metalness: 0.8, roughness: 0.2,
+                emissive: 0xff2200, emissiveIntensity: 0.4
             });
             const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
             obstacle.position.y = height * 0.35;
             group.add(obstacle);
 
-            // Warning ring
             const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
             const ringMat = new THREE.MeshBasicMaterial({
-                color: 0xff0000,
-                transparent: true,
-                opacity: 0.6
+                color: 0xff0000, transparent: true, opacity: 0.6
             });
             const ring = new THREE.Mesh(ringGeom, ringMat);
             ring.rotation.x = Math.PI / 2;
             ring.position.y = 0.05;
             group.add(ring);
 
-            // Find valid position
-            let gx, gz, valid;
-            let attempts = 0;
+            let gx, gz, valid, attempts = 0;
             do {
                 gx = Math.floor(Math.random() * gridWidth);
                 gz = Math.floor(Math.random() * gridHeight);
                 valid = true;
                 
-                // Check distance from snake head
                 if (snake.length > 0) {
                     const head = snake[0];
                     const dist = Math.abs(head.userData.gridX - gx) + Math.abs(head.userData.gridZ - gz);
@@ -1321,13 +1463,100 @@
             obstacles.push(group);
         }
 
+        function createObstacleInBottomZone(oldHeight, deltaHeight) {
+            if (deltaHeight <= 0) return;
+            
+            const group = new THREE.Group();
+
+            const height = 1 + Math.random() * 1.5;
+            const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
+            obstacleGeom.scale(1, height, 1);
+            
+            const obstacleMat = new THREE.MeshStandardMaterial({
+                color: 0xff3300, metalness: 0.8, roughness: 0.2,
+                emissive: 0xff2200, emissiveIntensity: 0.4
+            });
+            const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
+            obstacle.position.y = height * 0.35;
+            group.add(obstacle);
+
+            const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: 0xff0000, transparent: true, opacity: 0.6
+            });
+            const ring = new THREE.Mesh(ringGeom, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.05;
+            group.add(ring);
+
+            let gx, gz, valid, attempts = 0;
+            do {
+                gx = Math.floor(Math.random() * gridWidth);
+                gz = oldHeight + Math.floor(Math.random() * deltaHeight);
+                valid = true;
+                
+                for (const seg of snake) {
+                    if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
+                        valid = false;
+                        break;
+                    }
+                }
+                for (const obs of obstacles) {
+                    if (obs.userData.gridX === gx && obs.userData.gridZ === gz) {
+                        valid = false;
+                        break;
+                    }
+                }
+                attempts++;
+            } while (!valid && attempts < 100);
+
+            if (attempts >= 100) return;
+
+            const worldPos = gridToWorld(gx, gz);
+            group.position.set(worldPos.x, 0, worldPos.z);
+            group.userData = { gridX: gx, gridZ: gz };
+
+            scene.add(group);
+            obstacles.push(group);
+        }
+
+        function createObstacleAt(gx, gz) {
+            const group = new THREE.Group();
+
+            const height = 1 + Math.random() * 1.5;
+            const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
+            obstacleGeom.scale(1, height, 1);
+            
+            const obstacleMat = new THREE.MeshStandardMaterial({
+                color: 0xff3300, metalness: 0.8, roughness: 0.2,
+                emissive: 0xff2200, emissiveIntensity: 0.4
+            });
+            const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
+            obstacle.position.y = height * 0.35;
+            group.add(obstacle);
+
+            const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: 0xff0000, transparent: true, opacity: 0.6
+            });
+            const ring = new THREE.Mesh(ringGeom, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.05;
+            group.add(ring);
+
+            const worldPos = gridToWorld(gx, gz);
+            group.position.set(worldPos.x, 0, worldPos.z);
+            group.userData = { gridX: gx, gridZ: gz };
+
+            scene.add(group);
+            return group;
+        }
+
         function createExplosion(x, y, z, color) {
             for (let i = 0; i < 25; i++) {
                 const geom = new THREE.SphereGeometry(0.08, 6, 6);
                 const mat = new THREE.MeshBasicMaterial({
-                    color: new THREE.Color(color),
-                    transparent: true,
-                    opacity: 1
+                    color: new THREE.Color(color), transparent: true, opacity: 1
                 });
                 const particle = new THREE.Mesh(geom, mat);
                 particle.position.set(x, y, z);
@@ -1352,7 +1581,6 @@
         }
 
         function initGame() {
-            // Clear previous game
             snake.forEach(s => scene.remove(s));
             snake = [];
             obstacles.forEach(o => scene.remove(o));
@@ -1361,19 +1589,20 @@
             particles = [];
             if (nanobot) scene.remove(nanobot);
             nanobot = null;
+            if (nanobotTimer) clearTimeout(nanobotTimer);
 
             score = 0;
             level = 1;
             direction = { x: 1, y: 0 };
             nextDirection = { x: 1, y: 0 };
-            currentSpeed = CONFIG.SNAKE_SPEED;
+            currentSpeed = baseSpeed;
+            gamePaused = false;
 
             calculateGridSize();
             createGrid();
             updateCamera();
             updateUI();
 
-            // Start snake in center
             const startX = Math.floor(gridWidth / 2);
             const startZ = Math.floor(gridHeight / 2);
 
@@ -1381,15 +1610,19 @@
             snake.push(createSnakeSegment(startX - 1, startZ, 1, 3));
             snake.push(createSnakeSegment(startX - 2, startZ, 2, 3));
 
-            // Orientar la cabeza hacia la dirección inicial (derecha)
             snake[0].rotation.y = Math.PI / 2;
 
             createNanobot();
             gameRunning = true;
             lastMoveTime = Date.now();
+            
+            hideAllMenus();
+            showGameUI();
         }
 
         function updateSnake() {
+            if (gamePaused) return;
+            
             const now = Date.now();
             if (now - lastMoveTime < currentSpeed) return;
             lastMoveTime = now;
@@ -1400,13 +1633,11 @@
             let newX = head.userData.gridX + direction.x;
             let newZ = head.userData.gridZ + direction.y;
 
-            // Wrap around edges (no walls!)
             if (newX < 0) newX = gridWidth - 1;
             if (newX >= gridWidth) newX = 0;
             if (newZ < 0) newZ = gridHeight - 1;
             if (newZ >= gridHeight) newZ = 0;
 
-            // Check self collision
             for (let i = 1; i < snake.length; i++) {
                 if (snake[i].userData.gridX === newX && snake[i].userData.gridZ === newZ) {
                     gameOver();
@@ -1414,7 +1645,6 @@
                 }
             }
 
-            // Check obstacle collision
             for (const obs of obstacles) {
                 if (obs.userData.gridX === newX && obs.userData.gridZ === newZ) {
                     gameOver();
@@ -1422,7 +1652,6 @@
                 }
             }
 
-            // Check nanobot collection
             let grow = false;
             if (nanobot && nanobot.userData.gridX === newX && nanobot.userData.gridZ === newZ) {
                 grow = true;
@@ -1433,7 +1662,6 @@
                 nanobot = null;
                 clearTimeout(nanobotTimer);
 
-                // Level up every 10 nanobots
                 if (score % CONFIG.GROWTH_THRESHOLD === 0) {
                     levelUp();
                 } else {
@@ -1443,7 +1671,6 @@
                 updateUI();
             }
 
-            // Move snake
             const positions = [{ x: newX, z: newZ }];
             snake.forEach(seg => {
                 positions.push({ x: seg.userData.gridX, z: seg.userData.gridZ });
@@ -1457,17 +1684,10 @@
                 snake.push(createSnakeSegment(positions[i].x, positions[i].z, i, newLength));
             }
 
-            // Update head rotation based on direction
-            // La cabeza está construida mirando hacia +Z, así que ajustamos la rotación
-            if (direction.x === 1) {
-                snake[0].rotation.y = Math.PI / 2;  // Derecha
-            } else if (direction.x === -1) {
-                snake[0].rotation.y = -Math.PI / 2; // Izquierda
-            } else if (direction.y === -1) {
-                snake[0].rotation.y = Math.PI;      // Arriba (hacia -Z en pantalla)
-            } else if (direction.y === 1) {
-                snake[0].rotation.y = 0;            // Abajo (hacia +Z en pantalla)
-            }
+            if (direction.x === 1) snake[0].rotation.y = Math.PI / 2;
+            else if (direction.x === -1) snake[0].rotation.y = -Math.PI / 2;
+            else if (direction.y === -1) snake[0].rotation.y = Math.PI;
+            else if (direction.y === 1) snake[0].rotation.y = 0;
 
             document.getElementById('length').textContent = snake.length;
         }
@@ -1475,60 +1695,44 @@
         function levelUp() {
             level++;
             
-            // Show level up message
             const levelUpEl = document.getElementById('levelUp');
             levelUpEl.textContent = `¡NIVEL ${level}!`;
             levelUpEl.classList.add('active');
             setTimeout(() => levelUpEl.classList.remove('active'), 1500);
 
-            // Store snake ABSOLUTE grid positions (not relative)
             const snakeGridPositions = snake.map(seg => ({
                 gx: seg.userData.gridX,
                 gz: seg.userData.gridZ
             }));
             
-            // Store old grid size
             const oldGridWidth = gridWidth;
             const oldGridHeight = gridHeight;
 
-            // Expand grid
             calculateGridSize();
             
-            // Calculate how much the grid expanded
             const deltaWidth = gridWidth - oldGridWidth;
             const deltaHeight = gridHeight - oldGridHeight;
             
-            // El mapa crece hacia ABAJO (Z positivo es abajo en pantalla)
-            // La serpiente y obstáculos existentes se mantienen arriba
-            // offsetX centra horizontalmente, offsetZ = 0 para que crezca hacia abajo
             const offsetX = Math.floor(deltaWidth / 2);
-            const offsetZ = 0; // No desplazamos en Z, el mapa crece hacia abajo
+            const offsetZ = 0;
             
             createGrid();
             updateCamera();
 
-            // Reposition snake - se mantiene arriba (mismas coordenadas Z, solo ajuste X)
             snake.forEach(seg => scene.remove(seg));
             snake = [];
             
             snakeGridPositions.forEach((pos, i) => {
                 const newX = pos.gx + offsetX;
-                const newZ = pos.gz; // Mantener Z sin cambios (arriba)
+                const newZ = pos.gz;
                 snake.push(createSnakeSegment(newX, newZ, i, snakeGridPositions.length));
             });
 
-            // Mantener la orientación de la cabeza según la dirección actual
-            if (direction.x === 1) {
-                snake[0].rotation.y = Math.PI / 2;
-            } else if (direction.x === -1) {
-                snake[0].rotation.y = -Math.PI / 2;
-            } else if (direction.y === -1) {
-                snake[0].rotation.y = Math.PI;
-            } else if (direction.y === 1) {
-                snake[0].rotation.y = 0;
-            }
+            if (direction.x === 1) snake[0].rotation.y = Math.PI / 2;
+            else if (direction.x === -1) snake[0].rotation.y = -Math.PI / 2;
+            else if (direction.y === -1) snake[0].rotation.y = Math.PI;
+            else if (direction.y === 1) snake[0].rotation.y = 0;
 
-            // Reposition existing obstacles - también se mantienen arriba
             const obstacleGridPositions = obstacles.map(obs => ({
                 gx: obs.userData.gridX,
                 gz: obs.userData.gridZ
@@ -1539,123 +1743,18 @@
             
             obstacleGridPositions.forEach(pos => {
                 const newGx = pos.gx + offsetX;
-                const newGz = pos.gz; // Mantener Z sin cambios (arriba)
+                const newGz = pos.gz;
                 
                 const group = createObstacleAt(newGx, newGz);
                 if (group) obstacles.push(group);
             });
 
-            // Add new obstacles ONLY in the new bottom area
             for (let i = 0; i < CONFIG.OBSTACLE_PER_LEVEL; i++) {
                 createObstacleInBottomZone(oldGridHeight, deltaHeight);
             }
 
             createNanobot();
             document.getElementById('level').textContent = level;
-        }
-        
-        // Función para crear obstáculos solo en la zona nueva de abajo
-        function createObstacleInBottomZone(oldHeight, deltaHeight) {
-            const group = new THREE.Group();
-
-            const height = 1 + Math.random() * 1.5;
-            const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
-            obstacleGeom.scale(1, height, 1);
-            
-            const obstacleMat = new THREE.MeshStandardMaterial({
-                color: 0xff3300,
-                metalness: 0.8,
-                roughness: 0.2,
-                emissive: 0xff2200,
-                emissiveIntensity: 0.4
-            });
-            const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
-            obstacle.position.y = height * 0.35;
-            group.add(obstacle);
-
-            const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
-            const ringMat = new THREE.MeshBasicMaterial({
-                color: 0xff0000,
-                transparent: true,
-                opacity: 0.6
-            });
-            const ring = new THREE.Mesh(ringGeom, ringMat);
-            ring.rotation.x = Math.PI / 2;
-            ring.position.y = 0.05;
-            group.add(ring);
-
-            // Solo buscar posición en la zona NUEVA (parte inferior del mapa)
-            let gx, gz, valid;
-            let attempts = 0;
-            do {
-                gx = Math.floor(Math.random() * gridWidth);
-                // Solo en la zona nueva de abajo (desde oldHeight hasta gridHeight)
-                gz = oldHeight + Math.floor(Math.random() * deltaHeight);
-                valid = true;
-                
-                for (const seg of snake) {
-                    if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
-                        valid = false;
-                        break;
-                    }
-                }
-                for (const obs of obstacles) {
-                    if (obs.userData.gridX === gx && obs.userData.gridZ === gz) {
-                        valid = false;
-                        break;
-                    }
-                }
-                if (nanobot && nanobot.userData.gridX === gx && nanobot.userData.gridZ === gz) {
-                    valid = false;
-                }
-                attempts++;
-            } while (!valid && attempts < 100);
-
-            if (attempts >= 100) return;
-
-            const worldPos = gridToWorld(gx, gz);
-            group.position.set(worldPos.x, 0, worldPos.z);
-            group.userData = { gridX: gx, gridZ: gz };
-
-            scene.add(group);
-            obstacles.push(group);
-        }
-
-        function createObstacleAt(gx, gz) {
-            const group = new THREE.Group();
-
-            const height = 1 + Math.random() * 1.5;
-            const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
-            obstacleGeom.scale(1, height, 1);
-            
-            const obstacleMat = new THREE.MeshStandardMaterial({
-                color: 0xff3300,
-                metalness: 0.8,
-                roughness: 0.2,
-                emissive: 0xff2200,
-                emissiveIntensity: 0.4
-            });
-            const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
-            obstacle.position.y = height * 0.35;
-            group.add(obstacle);
-
-            const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
-            const ringMat = new THREE.MeshBasicMaterial({
-                color: 0xff0000,
-                transparent: true,
-                opacity: 0.6
-            });
-            const ring = new THREE.Mesh(ringGeom, ringMat);
-            ring.rotation.x = Math.PI / 2;
-            ring.position.y = 0.05;
-            group.add(ring);
-
-            const worldPos = gridToWorld(gx, gz);
-            group.position.set(worldPos.x, 0, worldPos.z);
-            group.userData = { gridX: gx, gridZ: gz };
-
-            scene.add(group);
-            return group;
         }
 
         function gameOver() {
@@ -1665,10 +1764,29 @@
                 createExplosion(seg.position.x, seg.position.y + 0.3, seg.position.z, 0x00ffff);
             });
 
+            const isNewRecord = saveRecord(score);
+            
             document.getElementById('finalScore').textContent = score;
+            document.getElementById('newRecordText').classList.toggle('hidden', !isNewRecord);
+            
             setTimeout(() => {
-                document.getElementById('gameOverScreen').style.display = 'flex';
+                hideGameUI();
+                showMenu('gameOverScreen');
             }, 500);
+        }
+
+        function pauseGame() {
+            if (!gameRunning) return;
+            gamePaused = true;
+            document.getElementById('pauseSpeedSlider').value = currentSpeedLevel;
+            updateSpeedDisplay(currentSpeedLevel, 'pauseSpeedValueDisplay');
+            showMenu('pauseMenu');
+        }
+
+        function resumeGame() {
+            gamePaused = false;
+            hideAllMenus();
+            lastMoveTime = Date.now();
         }
 
         function updateUI() {
@@ -1678,7 +1796,7 @@
         }
 
         function updateTimerDisplay() {
-            if (!nanobot || !gameRunning) return;
+            if (!nanobot || !gameRunning || gamePaused) return;
             
             const elapsed = Date.now() - nanobotStartTime;
             const remaining = Math.max(0, CONFIG.NANOBOT_LIFETIME - elapsed);
@@ -1692,12 +1810,12 @@
 
             const time = Date.now() * 0.001;
 
-            if (gameRunning) {
+            if (gameRunning && !gamePaused) {
                 updateSnake();
                 updateTimerDisplay();
             }
 
-            // Animate background shader
+            // Animate background
             scene.children.forEach(child => {
                 if (child.userData.isBackground && child.material.uniforms) {
                     child.material.uniforms.time.value = time;
@@ -1705,12 +1823,9 @@
                 if (child.userData.isStarLayer) {
                     child.rotation.y += child.userData.rotSpeed;
                 }
-                if (child.userData.isArc) {
-                    child.rotation.y += 0.002;
-                }
             });
 
-            // Animate floating orbs
+            // Animate orbs
             nebulaParticles.forEach((orb, i) => {
                 const data = orb.userData;
                 if (data.isOrb) {
@@ -1718,8 +1833,6 @@
                     orb.position.x = Math.cos(data.angle) * data.radius;
                     orb.position.z = Math.sin(data.angle) * data.radius;
                     orb.position.y = data.baseY + Math.sin(time * data.ySpeed * 50 + i) * 1.5;
-                    
-                    // Pulse opacity
                     orb.material.opacity = 0.3 + Math.sin(time * 2 + i) * 0.2;
                 }
             });
@@ -1728,7 +1841,6 @@
             if (nanobot) {
                 nanobot.rotation.y += 0.03;
                 nanobot.position.y = 0.5 + Math.sin(time * 4) * 0.15;
-
                 nanobot.children.forEach(child => {
                     if (child.userData.rotSpeed) {
                         child.rotation.z += child.userData.rotSpeed;
@@ -1747,32 +1859,25 @@
 
             // Animate snake
             if (snake.length > 0) {
-                // Animar la cabeza (primer segmento)
                 const headGroup = snake[0].children[0];
                 if (headGroup && headGroup.children) {
                     headGroup.children.forEach(child => {
-                        // Animar lengua bífida (movimiento de entrada/salida)
                         if (child.userData && child.userData.isTongue) {
                             child.position.z = 0.45 + Math.sin(time * 12) * 0.15;
                             child.rotation.y = Math.sin(time * 8) * 0.1;
                         }
                         
-                        // Animar ojos hipnóticos
                         if (child.userData && child.userData.isHypnoticEye) {
                             child.children.forEach(eyePart => {
                                 if (eyePart.userData && eyePart.userData.isSpiral) {
-                                    // Rotar espirales en direcciones alternadas
                                     const dir = eyePart.userData.spiralIndex % 2 === 0 ? 1 : -1;
                                     eyePart.rotation.z = time * 3 * dir + eyePart.userData.spiralIndex * 0.5;
-                                    
-                                    // Pulsar tamaño
                                     const pulse = 1 + Math.sin(time * 4 + eyePart.userData.spiralIndex) * 0.1;
                                     eyePart.scale.setScalar(pulse);
                                 }
                             });
                         }
                         
-                        // Animar punta de antena
                         if (child.userData && child.userData.isAntennaTip) {
                             child.material.opacity = 0.5 + Math.sin(time * 6) * 0.4;
                             const glowScale = 1 + Math.sin(time * 8) * 0.3;
@@ -1781,7 +1886,6 @@
                     });
                 }
 
-                // Animar cuerpo (movimiento ondulatorio)
                 snake.forEach((seg, i) => {
                     if (i > 0) {
                         seg.position.y = Math.sin(time * 5 + i * 0.4) * 0.05;
@@ -1789,7 +1893,7 @@
                 });
             }
 
-            // Animate floor shader
+            // Animate floor
             if (gridFloor) {
                 gridFloor.children.forEach(child => {
                     if (child.userData.isFloor && child.material.uniforms) {
@@ -1831,9 +1935,11 @@
             }
         }
 
-        // Keyboard controls
+        // ===== EVENT LISTENERS =====
+        
+        // Keyboard
         document.addEventListener('keydown', (e) => {
-            if (!gameRunning) return;
+            if (!gameRunning || gamePaused) return;
 
             switch (e.key.toLowerCase()) {
                 case 'arrowup': case 'w':
@@ -1851,16 +1957,19 @@
                 case ' ':
                     currentSpeed = CONFIG.FAST_SPEED;
                     break;
+                case 'escape': case 'p':
+                    pauseGame();
+                    break;
             }
         });
 
         document.addEventListener('keyup', (e) => {
             if (e.key === ' ') {
-                currentSpeed = CONFIG.SNAKE_SPEED;
+                currentSpeed = baseSpeed;
             }
         });
 
-        // Touch/Swipe controls
+        // Touch/Swipe
         document.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
@@ -1871,7 +1980,7 @@
         }, { passive: false });
 
         document.addEventListener('touchend', (e) => {
-            if (!gameRunning) return;
+            if (!gameRunning || gamePaused) return;
 
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
@@ -1884,14 +1993,12 @@
             }
 
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                // Horizontal swipe
                 if (deltaX > 0 && direction.x !== -1) {
                     nextDirection = { x: 1, y: 0 };
                 } else if (deltaX < 0 && direction.x !== 1) {
                     nextDirection = { x: -1, y: 0 };
                 }
             } else {
-                // Vertical swipe
                 if (deltaY > 0 && direction.y !== -1) {
                     nextDirection = { x: 0, y: 1 };
                 } else if (deltaY < 0 && direction.y !== 1) {
@@ -1900,15 +2007,78 @@
             }
         }, { passive: false });
 
-        // Button events
-        document.getElementById('startBtn').addEventListener('click', () => {
-            document.getElementById('startScreen').style.display = 'none';
+        // ===== MENU BUTTONS =====
+        
+        // Main Menu
+        document.getElementById('btnPlay').addEventListener('click', initGame);
+        
+        document.getElementById('btnSpeed').addEventListener('click', () => {
+            showMenu('speedMenu');
+        });
+        
+        document.getElementById('btnRecords').addEventListener('click', () => {
+            updateRecordsList();
+            showMenu('recordsMenu');
+        });
+        
+        document.getElementById('btnExit').addEventListener('click', () => {
+            if (confirm('¿Seguro que quieres salir?')) {
+                window.close();
+                // Fallback if window.close doesn't work
+                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#0ff;font-family:Orbitron,sans-serif;font-size:24px;background:#000;">¡Gracias por jugar!</div>';
+            }
+        });
+
+        // Speed Menu
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            updateSpeedDisplay(val, 'speedValueDisplay');
+            setGameSpeed(val);
+        });
+
+        document.getElementById('btnSpeedBack').addEventListener('click', () => {
+            showMenu('mainMenu');
+        });
+
+        // Records Menu
+        document.getElementById('btnClearRecords').addEventListener('click', () => {
+            if (confirm('¿Seguro que quieres borrar todos los récords?')) {
+                clearRecords();
+            }
+        });
+
+        document.getElementById('btnRecordsBack').addEventListener('click', () => {
+            showMenu('mainMenu');
+        });
+
+        // Pause Menu
+        document.getElementById('pauseBtn').addEventListener('click', pauseGame);
+
+        document.getElementById('pauseSpeedSlider').addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            updateSpeedDisplay(val, 'pauseSpeedValueDisplay');
+            setGameSpeed(val);
+        });
+
+        document.getElementById('btnResume').addEventListener('click', resumeGame);
+
+        document.getElementById('btnRestartPause').addEventListener('click', () => {
+            hideAllMenus();
             initGame();
         });
 
-        document.getElementById('restartBtn').addEventListener('click', () => {
-            document.getElementById('gameOverScreen').style.display = 'none';
-            initGame();
+        document.getElementById('btnExitToMenu').addEventListener('click', () => {
+            gameRunning = false;
+            gamePaused = false;
+            hideGameUI();
+            showMenu('mainMenu');
+        });
+
+        // Game Over
+        document.getElementById('btnRestart').addEventListener('click', initGame);
+
+        document.getElementById('btnGameOverMenu').addEventListener('click', () => {
+            showMenu('mainMenu');
         });
 
         // D-Pad controls
@@ -1922,13 +2092,11 @@
         Object.entries(dpadButtons).forEach(([id, dir]) => {
             const btn = document.getElementById(id);
             
-            // Touch events
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                if (!gameRunning) return;
+                if (!gameRunning || gamePaused) return;
                 btn.classList.add('active');
                 
-                // Verificar que no vaya en dirección opuesta
                 if (dir.x !== 0 && direction.x !== -dir.x) {
                     nextDirection = { ...dir };
                 } else if (dir.y !== 0 && direction.y !== -dir.y) {
@@ -1941,9 +2109,8 @@
                 btn.classList.remove('active');
             }, { passive: false });
 
-            // Mouse events (for desktop testing)
             btn.addEventListener('mousedown', (e) => {
-                if (!gameRunning) return;
+                if (!gameRunning || gamePaused) return;
                 btn.classList.add('active');
                 
                 if (dir.x !== 0 && direction.x !== -dir.x) {
@@ -1953,13 +2120,8 @@
                 }
             });
 
-            btn.addEventListener('mouseup', () => {
-                btn.classList.remove('active');
-            });
-
-            btn.addEventListener('mouseleave', () => {
-                btn.classList.remove('active');
-            });
+            btn.addEventListener('mouseup', () => btn.classList.remove('active'));
+            btn.addEventListener('mouseleave', () => btn.classList.remove('active'));
         });
 
         // Turbo button
@@ -1974,60 +2136,35 @@
         turboBtn.addEventListener('touchend', (e) => {
             e.preventDefault();
             turboBtn.classList.remove('active');
-            currentSpeed = CONFIG.SNAKE_SPEED;
+            currentSpeed = baseSpeed;
         }, { passive: false });
 
-        turboBtn.addEventListener('touchcancel', (e) => {
+        turboBtn.addEventListener('touchcancel', () => {
             turboBtn.classList.remove('active');
-            currentSpeed = CONFIG.SNAKE_SPEED;
+            currentSpeed = baseSpeed;
         }, { passive: false });
 
-        // Mouse events for turbo (desktop testing)
-        turboBtn.addEventListener('mousedown', (e) => {
+        turboBtn.addEventListener('mousedown', () => {
             turboBtn.classList.add('active');
             currentSpeed = CONFIG.FAST_SPEED;
         });
 
         turboBtn.addEventListener('mouseup', () => {
             turboBtn.classList.remove('active');
-            currentSpeed = CONFIG.SNAKE_SPEED;
+            currentSpeed = baseSpeed;
         });
 
         turboBtn.addEventListener('mouseleave', () => {
             turboBtn.classList.remove('active');
-            currentSpeed = CONFIG.SNAKE_SPEED;
+            currentSpeed = baseSpeed;
         });
 
-        // Hide touch controls on start screen, show during game
-        function updateTouchControlsVisibility() {
-            const touchControls = document.getElementById('touchControls');
-            const startScreen = document.getElementById('startScreen');
-            const gameOverScreen = document.getElementById('gameOverScreen');
-            
-            if (startScreen.style.display !== 'none' || gameOverScreen.style.display !== 'none') {
-                touchControls.style.display = 'none';
-            } else {
-                touchControls.style.display = 'flex';
-            }
-        }
-
-        // Override button clicks to also update touch controls visibility
-        const originalStartClick = document.getElementById('startBtn').onclick;
-        document.getElementById('startBtn').addEventListener('click', () => {
-            setTimeout(updateTouchControlsVisibility, 100);
-        });
-
-        document.getElementById('restartBtn').addEventListener('click', () => {
-            setTimeout(updateTouchControlsVisibility, 100);
-        });
-
-        // Initially hide touch controls
-        document.getElementById('touchControls').style.display = 'none';
-
-        // Initialize
+        // ===== INITIALIZATION =====
         initThree();
         calculateGridSize();
         updateCamera();
+        loadSavedSpeed();
+        updateRecordsList();
         animate();
     </script>
 </body>
