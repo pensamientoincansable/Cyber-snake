@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CYBER SNAKE - Nanobot Hunter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -20,8 +23,6 @@
             width: 100%;
             height: 100%;
         }
-
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
         #gameCanvas {
             display: block;
@@ -56,6 +57,16 @@
             font-weight: 700;
             text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
             font-family: 'Orbitron', monospace;
+            transition: color 0.4s ease;
+        }
+
+        .score-display.bump {
+            animation: scoreBump 0.4s ease-out;
+        }
+
+        @keyframes scoreBump {
+            0% { transform: scale(1.6); filter: brightness(2); }
+            100% { transform: scale(1); filter: brightness(1); }
         }
 
         .score-label {
@@ -140,13 +151,14 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(ellipse at center, rgba(0, 50, 80, 0.97), rgba(0, 10, 20, 0.99));
+            background: radial-gradient(ellipse at center, rgba(2, 30, 60, 0.92), rgba(0, 6, 16, 0.97));
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 200;
             padding: 20px;
+            backdrop-filter: blur(6px);
         }
 
         .menu-screen.hidden {
@@ -179,7 +191,7 @@
             color: rgba(0, 255, 255, 0.8);
             font-size: clamp(12px, 3vw, 24px);
             letter-spacing: 5px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             font-family: 'Orbitron', sans-serif;
             text-align: center;
         }
@@ -298,6 +310,93 @@
             border: 2px solid #fff;
         }
 
+        /* Selector de luces ambientales */
+        .light-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 14px 0 4px 0;
+        }
+
+        .light-label {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: clamp(9px, 2.2vw, 11px);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-right: 4px;
+        }
+
+        .light-btn {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.08));
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.55);
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(9px, 2.2vw, 11px);
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 7px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .light-btn:hover {
+            border-color: rgba(0, 255, 255, 0.5);
+            color: #0ff;
+        }
+
+        .light-btn.active {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.25), rgba(255, 0, 255, 0.25));
+            border-color: rgba(0, 255, 255, 0.7);
+            color: #fff;
+            box-shadow: 0 0 18px rgba(0, 255, 255, 0.4);
+        }
+
+        .custom-lights-panel {
+            width: 100%;
+            max-width: 320px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.45), rgba(30, 0, 60, 0.3));
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin: 10px 0 6px 0;
+            animation: panelIn 0.3s ease-out;
+        }
+
+        @keyframes panelIn {
+            0% { opacity: 0; transform: translateY(-8px) scale(0.97); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .light-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+        }
+
+        .light-slider-row span {
+            color: rgba(0, 255, 255, 0.7);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            min-width: 36px;
+        }
+
+        .light-slider-row .speed-slider {
+            background: linear-gradient(90deg, #f0f, #0ff, #0f0, #ff0, #f00);
+        }
+
+        .swatch {
+            width: 100%;
+            height: 26px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.2s ease;
+        }
+
         /* Lista de récords */
         .records-list {
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(0, 50, 80, 0.3));
@@ -390,7 +489,29 @@
             50% { opacity: 0.7; transform: scale(1.1); }
         }
 
-        /* Scanlines */
+        /* Capas de post-proceso CSS: viñeta, glow superior, scanlines */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 10, 0.55) 100%);
+            z-index: 285;
+        }
+
+        .top-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 220px;
+            pointer-events: none;
+            background: linear-gradient(180deg, rgba(0, 255, 255, 0.07), rgba(255, 0, 255, 0.03) 60%, transparent 100%);
+            z-index: 275;
+        }
+
         .scanlines {
             position: fixed;
             top: 0;
@@ -400,12 +521,63 @@
             pointer-events: none;
             background: repeating-linear-gradient(
                 0deg,
-                rgba(0, 0, 0, 0.03) 0px,
-                rgba(0, 0, 0, 0.03) 1px,
+                rgba(0, 0, 0, 0.025) 0px,
+                rgba(0, 0, 0, 0.025) 1px,
                 transparent 1px,
                 transparent 3px
             );
             z-index: 300;
+        }
+
+        /* Destello de pantalla (al comer / morir) */
+        #flashOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 246;
+        }
+
+        #flashOverlay.flash {
+            animation: overlayFlash 0.55s ease-out forwards;
+        }
+
+        @keyframes overlayFlash {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Toast al comer un nanobot */
+        #eatToast {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%) scale(0.6);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: clamp(16px, 4vw, 28px);
+            letter-spacing: 3px;
+            color: #0ff;
+            text-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 260;
+            white-space: nowrap;
+        }
+
+        #eatToast.show {
+            animation: toastAnim 1.15s ease-out forwards;
+        }
+
+        @keyframes toastAnim {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+            15% { opacity: 1; transform: translateX(-50%) scale(1.2); }
+            30% { transform: translateX(-50%) scale(1); }
+            75% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-36px) scale(1.05); }
         }
 
         .level-up {
@@ -576,7 +748,7 @@
         .turbo-icon {
             font-size: 22px;
             color: rgba(255, 255, 255, 0.5);
-            text-shadow: 0 0 8px rgba(255, 255, 0, 0.3);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
             margin-bottom: 2px;
         }
 
@@ -613,9 +785,13 @@
 </head>
 <body>
     <div id="gameCanvas"></div>
-    
+
+    <div class="vignette"></div>
+    <div class="top-glow"></div>
     <div class="scanlines"></div>
-    
+    <div id="flashOverlay"></div>
+    <div id="eatToast"></div>
+
     <!-- HUD del juego -->
     <div id="ui" class="hidden">
         <div class="hud-panel">
@@ -667,12 +843,35 @@
     <div class="menu-screen" id="mainMenu">
         <div class="title">CYBER SNAKE</div>
         <div class="subtitle">NANOBOT HUNTER</div>
-        
+
         <button class="menu-btn" id="btnPlay">🎮 JUGAR</button>
         <button class="menu-btn secondary" id="btnSpeed">⚡ VELOCIDAD</button>
         <button class="menu-btn" id="btnRecords">🏆 RÉCORDS</button>
+
+        <div class="light-row">
+            <span class="light-label">💡 LUCES</span>
+            <button class="light-btn active" id="lightBtnCyber">CYBER</button>
+            <button class="light-btn" id="lightBtnCustom">CUSTOM</button>
+        </div>
+
+        <div class="custom-lights-panel hidden" id="customLightsPanel">
+            <div class="light-slider-row">
+                <span>TONO</span>
+                <input type="range" min="0" max="360" value="180" class="speed-slider" id="lightHue">
+            </div>
+            <div class="light-slider-row">
+                <span>SAT</span>
+                <input type="range" min="0" max="100" value="100" class="speed-slider" id="lightSat">
+            </div>
+            <div class="light-slider-row">
+                <span>INT</span>
+                <input type="range" min="20" max="200" value="100" class="speed-slider" id="lightInt">
+            </div>
+            <div class="swatch" id="lightSwatch"></div>
+        </div>
+
         <button class="menu-btn danger" id="btnExit">🚪 SALIR</button>
-        
+
         <div class="controls-info">
             <span>↑ ↓ ← →</span> o <span>W A S D</span> para mover<br>
             <span>DESLIZA</span> o usa el <span>D-PAD</span> táctil<br>
@@ -683,24 +882,24 @@
     <!-- MENÚ DE VELOCIDAD -->
     <div class="menu-screen hidden" id="speedMenu">
         <div class="title title-small">⚡ VELOCIDAD</div>
-        
+
         <div class="speed-selector">
             <div class="speed-label">Velocidad de la serpiente</div>
             <div class="speed-value" id="speedValueDisplay">NORMAL</div>
             <input type="range" min="1" max="5" value="3" class="speed-slider" id="speedSlider">
         </div>
-        
+
         <button class="menu-btn" id="btnSpeedBack">← VOLVER</button>
     </div>
 
     <!-- MENÚ DE RÉCORDS -->
     <div class="menu-screen hidden" id="recordsMenu">
         <div class="title title-small">🏆 RÉCORDS</div>
-        
+
         <div class="records-list" id="recordsList">
             <div class="no-records">No hay récords todavía</div>
         </div>
-        
+
         <button class="menu-btn danger small" id="btnClearRecords">🗑 BORRAR RÉCORDS</button>
         <button class="menu-btn" id="btnRecordsBack">← VOLVER</button>
     </div>
@@ -708,13 +907,13 @@
     <!-- MENÚ DE PAUSA -->
     <div class="menu-screen hidden" id="pauseMenu">
         <div class="title title-small">⏸ PAUSA</div>
-        
+
         <div class="speed-selector">
             <div class="speed-label">Velocidad de la serpiente</div>
             <div class="speed-value" id="pauseSpeedValueDisplay">NORMAL</div>
             <input type="range" min="1" max="5" value="3" class="speed-slider" id="pauseSpeedSlider">
         </div>
-        
+
         <button class="menu-btn" id="btnResume">▶ CONTINUAR</button>
         <button class="menu-btn secondary" id="btnRestartPause">🔄 REINICIAR</button>
         <button class="menu-btn danger" id="btnExitToMenu">🏠 MENÚ PRINCIPAL</button>
@@ -725,7 +924,7 @@
         <div class="title title-small">💀 GAME OVER</div>
         <div class="new-record hidden" id="newRecordText">🎉 ¡NUEVO RÉCORD! 🎉</div>
         <div class="final-score">SCORE: <span id="finalScore">0</span></div>
-        
+
         <button class="menu-btn" id="btnRestart">🔄 REINICIAR</button>
         <button class="menu-btn secondary" id="btnGameOverMenu">🏠 MENÚ PRINCIPAL</button>
     </div>
@@ -750,6 +949,22 @@
             OBSTACLE_PER_LEVEL: 3
         };
 
+        // Colores de nanobots y sus nombres
+        const NANOBOT_COLORS = [
+            { hex: 0xff00ff, name: 'MAGENTA' },
+            { hex: 0x00ffff, name: 'CIAN' },
+            { hex: 0x00ff88, name: 'VERDE NEÓN' },
+            { hex: 0xff6600, name: 'ÁMBAR' },
+            { hex: 0x8844ff, name: 'VIOLETA' },
+            { hex: 0xff2266, name: 'ROSA NEÓN' },
+            { hex: 0x66ff22, name: 'LIMA' },
+            { hex: 0x00ccff, name: 'AZUL ELÉCTRICO' },
+            { hex: 0xffe600, name: 'AMARILLO' },
+            { hex: 0xff4400, name: 'ROJO' }
+        ];
+        const GOLD_NANOBOT = { hex: 0xffd700, name: 'ORO', bonus: 2 };
+        const BLACK_NANOBOT = { hex: 0x0a0a12, name: 'NEGRO' };
+
         // ===== ESTADO DEL JUEGO =====
         let scene, camera, renderer;
         let snake = [];
@@ -760,6 +975,7 @@
         let nanobotStartTime = 0;
         let obstacles = [];
         let particles = [];
+        let rings = [];
         let score = 0;
         let level = 1;
         let gridWidth, gridHeight;
@@ -771,13 +987,37 @@
         let gridFloor = null;
         let nebulaParticles = [];
         let currentSpeedLevel = 3;
+        let lastScoreShown = -1;
 
         // Touch controls
         let touchStartX = 0;
         let touchStartY = 0;
         let touchThreshold = 30;
 
-        // Snake colors
+        // ===== EFECTOS NUEVOS =====
+        // Ola de color que viaja por el cuerpo al absorber un nanobot
+        let pulseWave = { pos: 0, strength: 0 };
+        // Color absorbido: la cabeza de la serpiente lo adopta
+        let currentSnakeColorHex = 0x00ffff;
+        let displayHeadColor = new THREE.Color(0x00ffff);
+        let headColorTarget = new THREE.Color(0x00ffff);
+        let headRefs = { bodyMat: null, visorMat: null, auraMat: null };
+        let tailGlowRef = null;
+        // Textura de glow generada proceduralmente (billboard)
+        let glowTexture = null;
+        // Sacudida de cámara
+        let shakeAmount = 0;
+        // Destello de luces del mundo al absorber un color
+        let worldFlash = { active: false, color: new THREE.Color(0xffffff), amount: 0 };
+        // Modo de luces ambientales
+        let lightMode = 'cyber';
+        let customHue = 0.5, customSat = 1.0, customInt = 1.0;
+        let colorLight = new THREE.Color(0x00ffff);
+
+        // Luces del mundo (creadas en initThree)
+        let ambientLight, topLight, cyanLight, magentaLight;
+
+        // Snake colors (gradiente base del cuerpo)
         const snakeColors = [
             0x00ffff, 0x00eeff, 0x00ddff, 0x00ccff, 0x00bbff,
             0x00aaff, 0x0099ff, 0x0088ff, 0x0077ff, 0x0066ff,
@@ -812,7 +1052,7 @@
         function updateRecordsList() {
             const records = getRecords();
             const container = document.getElementById('recordsList');
-            
+
             if (records.length === 0) {
                 container.innerHTML = '<div class="no-records">No hay récords todavía</div>';
                 return;
@@ -895,11 +1135,84 @@
             }
         }
 
+        // ===== LUCES AMBIENTALES =====
+        function loadLightSettings() {
+            try {
+                const raw = localStorage.getItem('cyberSnakeLights');
+                if (raw) {
+                    const s = JSON.parse(raw);
+                    lightMode = s.mode === 'custom' ? 'custom' : 'cyber';
+                    customHue = ((s.hue !== undefined ? s.hue : 180) % 360) / 360;
+                    customSat = (s.sat !== undefined ? s.sat : 100) / 100;
+                    customInt = (s.int !== undefined ? s.int : 100) / 100;
+                }
+            } catch (e) { /* datos corruptos: usamos valores por defecto */ }
+            syncLightUI();
+            applyLights();
+        }
+
+        function saveLightSettings() {
+            localStorage.setItem('cyberSnakeLights', JSON.stringify({
+                mode: lightMode,
+                hue: Math.round(customHue * 360),
+                sat: Math.round(customSat * 100),
+                int: Math.round(customInt * 100)
+            }));
+        }
+
+        function syncLightUI() {
+            document.getElementById('lightBtnCyber').classList.toggle('active', lightMode === 'cyber');
+            document.getElementById('lightBtnCustom').classList.toggle('active', lightMode === 'custom');
+            document.getElementById('customLightsPanel').classList.toggle('hidden', lightMode !== 'custom');
+            document.getElementById('lightHue').value = Math.round(customHue * 360);
+            document.getElementById('lightSat').value = Math.round(customSat * 100);
+            document.getElementById('lightInt').value = Math.round(customInt * 100);
+            updateSwatch();
+        }
+
+        function updateSwatch() {
+            const el = document.getElementById('lightSwatch');
+            const c = new THREE.Color().setHSL(customHue, customSat, 0.55);
+            el.style.background = '#' + c.getHexString();
+            el.style.boxShadow = '0 0 18px #' + c.getHexString();
+        }
+
+        function setLightMode(mode) {
+            lightMode = mode;
+            applyLights();
+            saveLightSettings();
+            syncLightUI();
+        }
+
+        // Aplica el color elegido a las luces del mundo
+        function applyLights() {
+            if (!cyanLight || !magentaLight) return;
+            if (lightMode === 'custom') {
+                colorLight.setHSL(customHue, customSat, 0.5);
+                cyanLight.color.copy(colorLight);
+                magentaLight.color.copy(colorLight);
+                ambientLight.color.copy(new THREE.Color(0x223355).lerp(colorLight, 0.3));
+                topLight.color.copy(new THREE.Color(0x88ccff).lerp(colorLight, 0.35));
+                const l = 0.6 + customInt * 0.9;
+                cyanLight.intensity = 1.0 * l;
+                magentaLight.intensity = 1.0 * l;
+                ambientLight.intensity = 0.7 * customInt;
+            } else {
+                cyanLight.color.setHex(0x00ffff);
+                magentaLight.color.setHex(0xff00ff);
+                ambientLight.color.setHex(0x223355);
+                topLight.color.setHex(0x88ccff);
+                cyanLight.intensity = 1.1;
+                magentaLight.intensity = 1.1;
+                ambientLight.intensity = 0.85;
+            }
+        }
+
         // ===== THREE.JS SETUP =====
         function calculateGridSize() {
             const aspect = window.innerWidth / window.innerHeight;
             const baseSize = 7 + (level - 1) * 3;
-            
+
             if (aspect < 1) {
                 gridWidth = Math.round(baseSize * 0.85);
                 gridHeight = Math.round(gridWidth / aspect * 0.82);
@@ -909,9 +1222,43 @@
             }
         }
 
+        function createGlowTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+            grad.addColorStop(0, 'rgba(255,255,255,1)');
+            grad.addColorStop(0.25, 'rgba(255,255,255,0.6)');
+            grad.addColorStop(0.6, 'rgba(255,255,255,0.15)');
+            grad.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 128, 128);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // Sprite billboard con glow radial, ideal para luces/destellos
+        function createGlowSprite(colorHex, scale, opacity, y) {
+            const mat = new THREE.SpriteMaterial({
+                map: glowTexture,
+                color: new THREE.Color(colorHex),
+                transparent: true,
+                opacity: opacity,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(scale, scale, 1);
+            sprite.position.y = y !== undefined ? y : 0.5;
+            return sprite;
+        }
+
         function initThree() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x000510);
+            scene.background = new THREE.Color(0x000410);
+            scene.fog = new THREE.Fog(0x000410, 50, 160);
+
+            glowTexture = createGlowTexture();
 
             const aspect = window.innerWidth / window.innerHeight;
             camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
@@ -921,25 +1268,35 @@
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.outputEncoding = THREE.sRGBEncoding;
             document.getElementById('gameCanvas').appendChild(renderer.domElement);
 
             calculateGridSize();
 
             // Lighting
-            const ambientLight = new THREE.AmbientLight(0x334466, 0.8);
+            ambientLight = new THREE.AmbientLight(0x223355, 0.85);
             scene.add(ambientLight);
 
-            const topLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            topLight = new THREE.DirectionalLight(0x88ccff, 0.55);
             topLight.position.set(0, 50, 0);
             scene.add(topLight);
 
-            const cyanLight = new THREE.PointLight(0x00ffff, 1, 100);
+            cyanLight = new THREE.PointLight(0x00ffff, 1.1, 120);
             cyanLight.position.set(-20, 20, -20);
             scene.add(cyanLight);
 
-            const magentaLight = new THREE.PointLight(0xff00ff, 1, 100);
+            magentaLight = new THREE.PointLight(0xff00ff, 1.1, 120);
             magentaLight.position.set(20, 20, 20);
             scene.add(magentaLight);
+
+            // Luz de relleno desde atrás para dar profundidad
+            const rimLight = new THREE.PointLight(0x4466ff, 0.6, 80);
+            rimLight.position.set(0, 12, 30);
+            scene.add(rimLight);
+
+            // Luz hemisférica para suavizar sombras del entorno
+            const hemiLight = new THREE.HemisphereLight(0x4488ff, 0x220033, 0.5);
+            scene.add(hemiLight);
 
             createBackground();
             window.addEventListener('resize', onWindowResize);
@@ -949,12 +1306,12 @@
             const aspect = window.innerWidth / window.innerHeight;
             const totalWidth = gridWidth * CONFIG.CELL_SIZE;
             const totalHeight = gridHeight * CONFIG.CELL_SIZE;
-            
+
             camera.fov = 55;
             const fov = camera.fov * (Math.PI / 180);
-            
+
             let cameraHeight, cameraZ, lookAtY, lookAtZ;
-            
+
             if (aspect < 1) {
                 const requiredHeightForWidth = (totalWidth / 2) / Math.tan(fov / 2) / aspect;
                 cameraHeight = requiredHeightForWidth * 1.05;
@@ -968,7 +1325,7 @@
                 lookAtY = 0;
                 lookAtZ = -totalHeight * 0.05;
             }
-            
+
             camera.position.set(0, cameraHeight, cameraZ);
             camera.lookAt(0, lookAtY, lookAtZ);
             camera.aspect = aspect;
@@ -997,21 +1354,21 @@
                     uniform vec3 color2;
                     uniform vec3 color3;
                     varying vec2 vUv;
-                    
+
                     void main() {
                         vec2 p = vUv * 2.0 - 1.0;
                         float d = length(p);
-                        
+
                         float wave1 = sin(p.x * 3.0 + time * 0.5) * cos(p.y * 3.0 + time * 0.3);
                         float wave2 = sin(p.x * 5.0 - time * 0.4) * sin(p.y * 4.0 + time * 0.6);
                         float wave3 = cos(d * 8.0 - time * 0.8) * 0.5;
-                        
+
                         float pattern = (wave1 + wave2 + wave3) * 0.33 + 0.5;
-                        
+
                         vec3 col = mix(color1, color2, pattern);
                         col = mix(col, color3, sin(d * 4.0 + time * 0.2) * 0.5 + 0.5);
                         col += vec3(0.0, 0.05, 0.1) * (1.0 - d * 0.5);
-                        
+
                         gl_FragColor = vec4(col, 1.0);
                     }
                 `
@@ -1072,7 +1429,7 @@
                     opacity: 0.3 + Math.random() * 0.3
                 });
                 const orb = new THREE.Mesh(orbGeom, orbMat);
-                
+
                 const radius = 20 + Math.random() * 40;
                 const angle = Math.random() * Math.PI * 2;
                 orb.position.set(Math.cos(angle) * radius, -2 - Math.random() * 3, Math.sin(angle) * radius);
@@ -1087,6 +1444,94 @@
                 scene.add(orb);
                 nebulaParticles.push(orb);
             }
+        }
+
+        // Torres de neón alrededor del campo de juego: sensación de profundidad
+        function createNeonSkyline() {
+            const totalWidth = gridWidth * CONFIG.CELL_SIZE;
+            const totalHeight = gridHeight * CONFIG.CELL_SIZE;
+            const halfW = totalWidth / 2;
+            const halfH = totalHeight / 2;
+
+            for (let i = 0; i < 12; i++) {
+                const side = Math.floor(Math.random() * 4);
+                const h = 2.5 + Math.random() * 5;
+                const w = 0.5 + Math.random() * 0.7;
+                const d = 0.5 + Math.random() * 0.7;
+                const margin = 2.5 + Math.random() * 5;
+                let x, z;
+
+                if (side === 0) { x = (Math.random() - 0.5) * totalWidth * 1.3; z = -halfH - margin; }
+                else if (side === 1) { x = (Math.random() - 0.5) * totalWidth * 1.3; z = halfH + margin; }
+                else if (side === 2) { x = -halfW - margin; z = (Math.random() - 0.5) * totalHeight * 1.3; }
+                else { x = halfW + margin; z = (Math.random() - 0.5) * totalHeight * 1.3; }
+
+                const color = Math.random() < 0.5 ? 0x00ffff : 0xff00ff;
+                const outerMat = new THREE.MeshStandardMaterial({
+                    color: color,
+                    metalness: 0.7,
+                    roughness: 0.3,
+                    emissive: color,
+                    emissiveIntensity: 0.3,
+                    transparent: true,
+                    opacity: 0.85
+                });
+                const tower = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), outerMat);
+                tower.position.set(x, h / 2 - 0.1, z);
+                tower.userData.isTower = true;
+                gridFloor.add(tower);
+
+                // Núcleo interior brillante
+                const coreMat = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0.25
+                });
+                const core = new THREE.Mesh(new THREE.BoxGeometry(w * 0.35, h * 0.8, d * 0.35), coreMat);
+                core.position.set(x, h * 0.4 - 0.1, z);
+                core.rotation.y = Math.PI / 4;
+                core.userData.isTowerCore = true;
+                gridFloor.add(core);
+
+                // Glow en la punta
+                const tip = createGlowSprite(color, 1.8, 0.45, h + 0.3);
+                tip.position.x = x;
+                tip.position.z = z;
+                tip.userData.isTowerTip = true;
+                gridFloor.add(tip);
+            }
+        }
+
+        // Pilares de cristal en las esquinas de la arena
+        function createCornerPillar(x, z) {
+            const h = 3.5 + Math.random() * 1.5;
+            const pillarMat = new THREE.MeshStandardMaterial({
+                color: 0x00ccff,
+                metalness: 0.2,
+                roughness: 0.1,
+                emissive: 0x0055aa,
+                emissiveIntensity: 0.5,
+                transparent: true,
+                opacity: 0.5
+            });
+            const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.22, h, 8), pillarMat);
+            pillar.position.set(x, h / 2, z);
+            pillar.userData.isPillar = true;
+            gridFloor.add(pillar);
+
+            const cap = new THREE.Mesh(
+                new THREE.OctahedronGeometry(0.28, 0),
+                new THREE.MeshBasicMaterial({ color: 0x00ffff })
+            );
+            cap.position.set(x, h + 0.1, z);
+            cap.userData.isPillarCap = true;
+            gridFloor.add(cap);
+
+            const tip = createGlowSprite(0x00ffff, 1.4, 0.6, h + 0.45);
+            tip.position.x = x;
+            tip.position.z = z;
+            tip.userData.isPillarTip = true;
+            gridFloor.add(tip);
         }
 
         function createGrid() {
@@ -1113,23 +1558,23 @@
                     uniform float time;
                     uniform vec2 gridSize;
                     varying vec2 vUv;
-                    
+
                     void main() {
                         vec2 grid = vUv * gridSize;
                         vec2 gridLines = abs(fract(grid - 0.5) - 0.5) / fwidth(grid);
                         float line = min(gridLines.x, gridLines.y);
-                        
+
                         float dist = length(vUv - 0.5);
                         vec3 baseColor = mix(vec3(0.02, 0.04, 0.08), vec3(0.0, 0.01, 0.03), dist * 1.5);
-                        
+
                         float pulse = sin(dist * 20.0 - time * 2.0) * 0.5 + 0.5;
                         pulse *= (1.0 - dist) * 0.3;
-                        
+
                         float gridGlow = 1.0 - min(line, 1.0);
                         vec3 gridColor = mix(vec3(0.0, 0.8, 1.0), vec3(1.0, 0.0, 1.0), sin(time * 0.5 + dist * 3.0) * 0.5 + 0.5);
-                        
+
                         vec3 finalColor = baseColor + gridColor * gridGlow * 0.4 + vec3(0.0, pulse * 0.3, pulse * 0.5);
-                        
+
                         gl_FragColor = vec4(finalColor, 0.95);
                     }
                 `,
@@ -1153,13 +1598,19 @@
             edge.userData.isEdge = true;
             gridFloor.add(edge);
 
+            // Pilares de cristal en las esquinas
+            createCornerPillar(-totalWidth/2, -totalHeight/2);
+            createCornerPillar(totalWidth/2, -totalHeight/2);
+            createCornerPillar(-totalWidth/2, totalHeight/2);
+            createCornerPillar(totalWidth/2, totalHeight/2);
+
             const corners = [
                 [-totalWidth/2, -totalHeight/2],
                 [totalWidth/2, -totalHeight/2],
                 [totalWidth/2, totalHeight/2],
                 [-totalWidth/2, totalHeight/2]
             ];
-            
+
             corners.forEach((pos, i) => {
                 const markerGeom = new THREE.RingGeometry(0.3, 0.5, 4);
                 const markerMat = new THREE.MeshBasicMaterial({
@@ -1175,6 +1626,9 @@
                 marker.userData.cornerIndex = i;
                 gridFloor.add(marker);
             });
+
+            // Skyline de neón alrededor (fuera del área jugable)
+            createNeonSkyline();
 
             scene.add(gridFloor);
         }
@@ -1192,39 +1646,61 @@
             const group = new THREE.Group();
             const isHead = index === 0;
             const colorIndex = Math.min(index, snakeColors.length - 1);
-            const segmentColor = snakeColors[colorIndex];
-            
+            let segmentColor = snakeColors[colorIndex];
+
+            // Los primeros segmentos del cuerpo se tiñen con el color de la cabeza
+            if (index > 0 && index < 4) {
+                const blend = new THREE.Color(segmentColor);
+                blend.lerp(displayHeadColor, 0.4 - index * 0.1);
+                segmentColor = blend.getHex();
+            }
+
             const sizeFactor = isHead ? 1 : Math.max(0.5, 1 - index * 0.03);
             const baseRadius = 0.35 * sizeFactor;
+            let bodyMat = null;
 
             if (isHead) {
                 const headGroup = new THREE.Group();
-                
+
                 const headGeom = new THREE.SphereGeometry(0.38, 24, 18);
                 headGeom.scale(0.9, 0.55, 1.3);
                 const headMat = new THREE.MeshStandardMaterial({
-                    color: 0x00ddaa, metalness: 0.4, roughness: 0.3,
-                    emissive: 0x00ffcc, emissiveIntensity: 0.15
+                    color: displayHeadColor.getHex(),
+                    metalness: 0.4,
+                    roughness: 0.3,
+                    emissive: displayHeadColor.getHex(),
+                    emissiveIntensity: 0.3
                 });
                 const headBase = new THREE.Mesh(headGeom, headMat);
                 headBase.position.y = 0.22;
+                headBase.userData.isHeadBase = true;
                 headGroup.add(headBase);
-                
+
                 const snoutGeom = new THREE.ConeGeometry(0.22, 0.35, 16);
                 snoutGeom.scale(0.8, 1, 1.2);
                 const snoutMat = new THREE.MeshStandardMaterial({
-                    color: 0x00eebb, metalness: 0.3, roughness: 0.4,
-                    emissive: 0x00ffdd, emissiveIntensity: 0.1
+                    color: displayHeadColor.getHex(),
+                    metalness: 0.3,
+                    roughness: 0.4,
+                    emissive: displayHeadColor.getHex(),
+                    emissiveIntensity: 0.2
                 });
                 const snout = new THREE.Mesh(snoutGeom, snoutMat);
                 snout.rotation.x = Math.PI / 2;
                 snout.position.set(0, 0.18, 0.42);
                 headGroup.add(snout);
-                
+
+                // Visor de energía delante de los ojos
+                const visor = createGlowSprite(displayHeadColor.getHex(), 0.7, 0.5, 0.28);
+                visor.position.set(0, 0.28, 0.4);
+                visor.scale.set(0.7, 0.42, 1);
+                visor.userData.isVisor = true;
+                headGroup.add(visor);
+
                 // Eyes
                 function createHypnoticEye(xPos) {
                     const eyeGroup = new THREE.Group();
-                    
+
                     const eyeballGeom = new THREE.SphereGeometry(0.14, 32, 32);
                     const eyeballMat = new THREE.MeshStandardMaterial({
                         color: 0xffffaa, metalness: 0.1, roughness: 0.2,
@@ -1232,7 +1708,7 @@
                     });
                     const eyeball = new THREE.Mesh(eyeballGeom, eyeballMat);
                     eyeGroup.add(eyeball);
-                    
+
                     const spiralColors = [0xff00ff, 0x00ffff, 0xff00ff, 0x00ffff, 0xff00ff];
                     for (let i = 0; i < 5; i++) {
                         const ringRadius = 0.14 * (0.9 - i * 0.15);
@@ -1246,23 +1722,23 @@
                         spiral.userData.isSpiral = true;
                         eyeGroup.add(spiral);
                     }
-                    
+
                     const pupilGeom = new THREE.CircleGeometry(0.035, 16);
                     const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
                     const pupil = new THREE.Mesh(pupilGeom, pupilMat);
                     pupil.position.z = 0.06;
                     eyeGroup.add(pupil);
-                    
+
                     eyeGroup.position.set(xPos, 0.32, 0.22);
                     eyeGroup.rotation.y = xPos > 0 ? 0.25 : -0.25;
                     eyeGroup.userData.isHypnoticEye = true;
-                    
+
                     return eyeGroup;
                 }
-                
+
                 headGroup.add(createHypnoticEye(0.2));
                 headGroup.add(createHypnoticEye(-0.2));
-                
+
                 // Tongue
                 const tongueGroup = new THREE.Group();
                 const tongueBaseGeom = new THREE.CylinderGeometry(0.025, 0.02, 0.25, 8);
@@ -1271,47 +1747,52 @@
                 tongueBase.rotation.x = Math.PI / 2;
                 tongueBase.position.z = 0.12;
                 tongueGroup.add(tongueBase);
-                
+
                 const forkGeom = new THREE.ConeGeometry(0.018, 0.12, 6);
                 const leftFork = new THREE.Mesh(forkGeom, tongueMat);
                 leftFork.rotation.x = Math.PI / 2;
                 leftFork.rotation.z = 0.4;
                 leftFork.position.set(0.04, 0, 0.28);
                 tongueGroup.add(leftFork);
-                
+
                 const rightFork = new THREE.Mesh(forkGeom, tongueMat);
                 rightFork.rotation.x = Math.PI / 2;
                 rightFork.rotation.z = -0.4;
                 rightFork.position.set(-0.04, 0, 0.28);
                 tongueGroup.add(rightFork);
-                
+
                 tongueGroup.position.set(0, 0.15, 0.45);
                 tongueGroup.userData.isTongue = true;
                 headGroup.add(tongueGroup);
-                
+
                 // Antenna
                 const antennaGeom = new THREE.CylinderGeometry(0.015, 0.025, 0.18, 8);
                 const antennaMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
                 const antenna = new THREE.Mesh(antennaGeom, antennaMat);
                 antenna.position.set(0, 0.48, -0.15);
                 headGroup.add(antenna);
-                
+
                 const antennaTipGeom = new THREE.SphereGeometry(0.04, 8, 8);
                 const antennaTipMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.9 });
                 const antennaTip = new THREE.Mesh(antennaTipGeom, antennaTipMat);
                 antennaTip.position.set(0, 0.58, -0.15);
                 antennaTip.userData.isAntennaTip = true;
                 headGroup.add(antennaTip);
-                
+
                 group.add(headGroup);
+
+                // Aura de luz bajo la cabeza (color absorbido)
+                const aura = createGlowSprite(displayHeadColor.getHex(), 1.7, 0.4, 0.05);
+                aura.userData.isAura = true;
+                group.add(aura);
 
             } else {
                 const bodyGeom = new THREE.SphereGeometry(baseRadius, 12, 10);
                 bodyGeom.scale(1, 0.7, 1.1);
-                
-                const bodyMat = new THREE.MeshStandardMaterial({
+
+                bodyMat = new THREE.MeshStandardMaterial({
                     color: segmentColor, metalness: 0.6, roughness: 0.3,
-                    emissive: segmentColor, emissiveIntensity: 0.15
+                    emissive: segmentColor, emissiveIntensity: 0.12
                 });
                 const body = new THREE.Mesh(bodyGeom, bodyMat);
                 body.position.y = 0.2;
@@ -1325,35 +1806,119 @@
                 ring.rotation.x = Math.PI / 2;
                 ring.position.y = 0.2;
                 group.add(ring);
+
+                // Luz de cola en el último segmento
+                if (index === totalLength - 1) {
+                    const tail = createGlowSprite(displayHeadColor.getHex(), 1.0, 0.4, 0.3);
+                    tail.userData.isTailGlow = true;
+                    group.add(tail);
+                }
             }
 
             const worldPos = gridToWorld(gx, gz);
             group.position.set(worldPos.x, 0, worldPos.z);
-            group.userData = { gridX: gx, gridZ: gz, index: index };
+            group.userData = { gridX: gx, gridZ: gz, index: index, isHead: isHead };
+
+            if (!isHead) {
+                group.userData.bodyMat = bodyMat;
+                group.userData.baseEmissive = new THREE.Color(segmentColor);
+            }
 
             scene.add(group);
             return group;
         }
 
+        // Captura referencias de materiales para animar el color absorbido
+        function refreshSnakeRefs() {
+            if (!snake.length) return;
+            const head = snake[0];
+            headRefs = { bodyMat: null, visorMat: null, auraMat: null };
+            tailGlowRef = null;
+
+            const headGroup = head.children[0];
+            if (headGroup) {
+                headGroup.children.forEach(child => {
+                    if (child.userData && child.userData.isVisor) headRefs.visorMat = child.material;
+                    if (child.userData && child.userData.isHeadBase) headRefs.bodyMat = child.material;
+                });
+            }
+            const aura = head.children.find(c => c.userData && c.userData.isAura);
+            if (aura) headRefs.auraMat = aura.material;
+
+            const tail = snake[snake.length - 1];
+            const tailGlow = tail.children.find(c => c.userData && c.userData.isTailGlow);
+            if (tailGlow) tailGlowRef = tailGlow;
+        }
+
         function createNanobot() {
-            if (nanobot) scene.remove(nanobot);
+            if (nanobot) {
+                scene.remove(nanobot);
+                nanobot = null;
+            }
 
             const group = new THREE.Group();
 
+            // Selección de color del nanobot
+            const roll = Math.random();
+            let colorHex, colorName, isGold = false, isBlack = false;
+            if (roll < 0.1) {
+                colorHex = GOLD_NANOBOT.hex;
+                colorName = GOLD_NANOBOT.name;
+                isGold = true;
+            } else if (roll < 0.16) {
+                colorHex = BLACK_NANOBOT.hex;
+                colorName = BLACK_NANOBOT.name;
+                isBlack = true;
+            } else {
+                const c = NANOBOT_COLORS[Math.floor(Math.random() * NANOBOT_COLORS.length)];
+                colorHex = c.hex;
+                colorName = c.name;
+            }
+            const color = new THREE.Color(colorHex);
+
+            // Escudo de cristal exterior
+            const shieldGeom = new THREE.IcosahedronGeometry(0.58, 1);
+            const shieldMat = new THREE.MeshStandardMaterial({
+                color: color,
+                metalness: 0.1,
+                roughness: 0.05,
+                emissive: color,
+                emissiveIntensity: 0.3,
+                transparent: true,
+                opacity: 0.14,
+                side: THREE.DoubleSide,
+                depthWrite: false
+            });
+            const shield = new THREE.Mesh(shieldGeom, shieldMat);
+            group.add(shield);
+
+            // Núcleo principal
             const coreGeom = new THREE.IcosahedronGeometry(0.3, 1);
             const coreMat = new THREE.MeshStandardMaterial({
-                color: 0xff00ff, metalness: 0.9, roughness: 0.1,
-                emissive: 0xff00ff, emissiveIntensity: 0.8
+                color: color,
+                metalness: 0.9,
+                roughness: 0.1,
+                emissive: color,
+                emissiveIntensity: 0.9
             });
             const core = new THREE.Mesh(coreGeom, coreMat);
             group.add(core);
 
+            // Núcleo interno (brillo blanco)
+            const innerMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const inner = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), innerMat);
+            group.add(inner);
+
+            // Anillos orbitales
+            const ringMats = [];
             for (let i = 0; i < 3; i++) {
-                const ringGeom = new THREE.TorusGeometry(0.45 + i * 0.1, 0.02, 8, 32);
                 const ringMat = new THREE.MeshBasicMaterial({
-                    color: [0xff00ff, 0x00ffff, 0xffff00][i],
-                    transparent: true, opacity: 0.8
+                    color: color,
+                    transparent: true,
+                    opacity: 0.75
                 });
+                ringMats.push(ringMat);
+                const ringGeom = new THREE.TorusGeometry(0.45 + i * 0.12, 0.02, 8, 32);
                 const ring = new THREE.Mesh(ringGeom, ringMat);
                 ring.rotation.x = Math.PI / 2 + i * 0.4;
                 ring.rotation.z = i * 0.5;
@@ -1361,12 +1926,28 @@
                 group.add(ring);
             }
 
+            // Anillo base en el suelo
+            const baseRingMat = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.55
+            });
+            const baseRing = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.55, 40), baseRingMat);
+            baseRing.rotation.x = -Math.PI / 2;
+            baseRing.position.y = 0.03;
+            baseRing.userData.isBaseRing = true;
+            group.add(baseRing);
+
+            // Glow billboard
+            const glowSprite = createGlowSprite(colorHex, 2.4, 0.5, 0.4);
+            group.add(glowSprite);
+
             let gx, gz, valid, attempts = 0;
             do {
                 gx = Math.floor(Math.random() * gridWidth);
                 gz = Math.floor(Math.random() * gridHeight);
                 valid = true;
-                
+
                 for (const seg of snake) {
                     if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
                         valid = false;
@@ -1384,7 +1965,23 @@
 
             const worldPos = gridToWorld(gx, gz);
             group.position.set(worldPos.x, 0.5, worldPos.z);
-            group.userData = { gridX: gx, gridZ: gz };
+            group.userData = {
+                gridX: gx,
+                gridZ: gz,
+                tintColor: colorHex,
+                colorName: colorName,
+                isGold: isGold,
+                isBlack: isBlack,
+                absorbing: false,
+                absorbT: 0,
+                baseColor: new THREE.Color(colorHex),
+                coreMat: coreMat,
+                innerMat: innerMat,
+                ringMats: ringMats,
+                shieldMat: shieldMat,
+                baseRingMat: baseRingMat,
+                glowMat: glowSprite.material
+            };
 
             scene.add(group);
             nanobot = group;
@@ -1392,8 +1989,9 @@
             nanobotStartTime = Date.now();
             if (nanobotTimer) clearTimeout(nanobotTimer);
             nanobotTimer = setTimeout(() => {
-                if (nanobot && gameRunning && !gamePaused) {
-                    createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z, 0xff00ff);
+                if (nanobot && !nanobot.userData.absorbing && gameRunning && !gamePaused) {
+                    createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z, nanobot.userData.tintColor, 25, 1);
+                    addShockwave(nanobot.position.x, 0.08, nanobot.position.z, nanobot.userData.tintColor);
                     createNanobot();
                 }
             }, CONFIG.NANOBOT_LIFETIME);
@@ -1405,7 +2003,7 @@
             const height = 1 + Math.random() * 1.5;
             const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
             obstacleGeom.scale(1, height, 1);
-            
+
             const obstacleMat = new THREE.MeshStandardMaterial({
                 color: 0xff3300, metalness: 0.8, roughness: 0.2,
                 emissive: 0xff2200, emissiveIntensity: 0.4
@@ -1428,13 +2026,13 @@
                 gx = Math.floor(Math.random() * gridWidth);
                 gz = Math.floor(Math.random() * gridHeight);
                 valid = true;
-                
+
                 if (snake.length > 0) {
                     const head = snake[0];
                     const dist = Math.abs(head.userData.gridX - gx) + Math.abs(head.userData.gridZ - gz);
                     if (dist < 5) valid = false;
                 }
-                
+
                 for (const seg of snake) {
                     if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
                         valid = false;
@@ -1465,13 +2063,13 @@
 
         function createObstacleInBottomZone(oldHeight, deltaHeight) {
             if (deltaHeight <= 0) return;
-            
+
             const group = new THREE.Group();
 
             const height = 1 + Math.random() * 1.5;
             const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
             obstacleGeom.scale(1, height, 1);
-            
+
             const obstacleMat = new THREE.MeshStandardMaterial({
                 color: 0xff3300, metalness: 0.8, roughness: 0.2,
                 emissive: 0xff2200, emissiveIntensity: 0.4
@@ -1494,7 +2092,7 @@
                 gx = Math.floor(Math.random() * gridWidth);
                 gz = oldHeight + Math.floor(Math.random() * deltaHeight);
                 valid = true;
-                
+
                 for (const seg of snake) {
                     if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
                         valid = false;
@@ -1526,7 +2124,7 @@
             const height = 1 + Math.random() * 1.5;
             const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
             obstacleGeom.scale(1, height, 1);
-            
+
             const obstacleMat = new THREE.MeshStandardMaterial({
                 color: 0xff3300, metalness: 0.8, roughness: 0.2,
                 emissive: 0xff2200, emissiveIntensity: 0.4
@@ -1552,19 +2150,38 @@
             return group;
         }
 
-        function createExplosion(x, y, z, color) {
-            for (let i = 0; i < 25; i++) {
+        function addShockwave(x, y, z, color) {
+            const geom = new THREE.RingGeometry(0.2, 0.42, 48);
+            const mat = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.9,
+                side: THREE.DoubleSide,
+                depthWrite: false
+            });
+            const ring = new THREE.Mesh(geom, mat);
+            ring.rotation.x = -Math.PI / 2;
+            ring.position.set(x, y, z);
+            ring.userData = { life: 1, isShockwave: true };
+            scene.add(ring);
+            rings.push(ring);
+        }
+
+        function createExplosion(x, y, z, color, count, speedScale) {
+            const n = count || 25;
+            const sp = speedScale || 1;
+            for (let i = 0; i < n; i++) {
                 const geom = new THREE.SphereGeometry(0.08, 6, 6);
                 const mat = new THREE.MeshBasicMaterial({
                     color: new THREE.Color(color), transparent: true, opacity: 1
                 });
                 const particle = new THREE.Mesh(geom, mat);
                 particle.position.set(x, y, z);
-                
-                const speed = 0.15 + Math.random() * 0.2;
+
+                const speed = (0.15 + Math.random() * 0.2) * sp;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.random() * Math.PI;
-                
+
                 particle.userData = {
                     velocity: new THREE.Vector3(
                         Math.sin(phi) * Math.cos(theta) * speed,
@@ -1574,10 +2191,47 @@
                     life: 1,
                     decay: 0.02 + Math.random() * 0.01
                 };
-                
+
                 scene.add(particle);
                 particles.push(particle);
             }
+            // Destello central
+            const flash = createGlowSprite(color, 2.2, 0.9, y);
+            flash.position.x = x;
+            flash.position.z = z;
+            flash.userData = {
+                isExplosionFlash: true,
+                life: 1,
+                baseScale: 2.2
+            };
+            scene.add(flash);
+            rings.push(flash);
+        }
+
+        // Inicia la absorción: el nanobot parpadea, encoge y vuela hacia la cabeza
+        function absorbNanobot(target) {
+            const data = target.userData;
+            data.absorbing = true;
+            data.absorbT = 0;
+        }
+
+        function showEatToast(name, pts) {
+            const el = document.getElementById('eatToast');
+            const hex = currentSnakeColorHex.toString(16).padStart(6, '0');
+            el.textContent = `+${pts} ${name}`;
+            el.style.color = '#' + hex;
+            el.classList.remove('show');
+            void el.offsetWidth;
+            el.classList.add('show');
+        }
+
+        function flashOverlay(color, opacity) {
+            const el = document.getElementById('flashOverlay');
+            el.style.background = color;
+            el.style.opacity = opacity !== undefined ? opacity : 1;
+            el.classList.remove('flash');
+            void el.offsetWidth;
+            el.classList.add('flash');
         }
 
         function initGame() {
@@ -1587,16 +2241,27 @@
             obstacles = [];
             particles.forEach(p => scene.remove(p));
             particles = [];
+            rings.forEach(r => scene.remove(r));
+            rings = [];
             if (nanobot) scene.remove(nanobot);
             nanobot = null;
             if (nanobotTimer) clearTimeout(nanobotTimer);
 
             score = 0;
+            lastScoreShown = -1;
             level = 1;
             direction = { x: 1, y: 0 };
             nextDirection = { x: 1, y: 0 };
             currentSpeed = baseSpeed;
             gamePaused = false;
+            shakeAmount = 0;
+            pulseWave = { pos: 0, strength: 0 };
+            worldFlash.active = false;
+            currentSnakeColorHex = 0x00ffff;
+            displayHeadColor.setHex(0x00ffff);
+            headColorTarget.setHex(0x00ffff);
+            headRefs = { bodyMat: null, visorMat: null, auraMat: null };
+            tailGlowRef = null;
 
             calculateGridSize();
             createGrid();
@@ -1611,18 +2276,19 @@
             snake.push(createSnakeSegment(startX - 2, startZ, 2, 3));
 
             snake[0].rotation.y = Math.PI / 2;
+            refreshSnakeRefs();
 
             createNanobot();
             gameRunning = true;
             lastMoveTime = Date.now();
-            
+
             hideAllMenus();
             showGameUI();
         }
 
         function updateSnake() {
             if (gamePaused) return;
-            
+
             const now = Date.now();
             if (now - lastMoveTime < currentSpeed) return;
             lastMoveTime = now;
@@ -1653,19 +2319,36 @@
             }
 
             let grow = false;
-            if (nanobot && nanobot.userData.gridX === newX && nanobot.userData.gridZ === newZ) {
+            if (nanobot && !nanobot.userData.absorbing && nanobot.userData.gridX === newX && nanobot.userData.gridZ === newZ) {
                 grow = true;
-                score++;
-                
-                createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z, 0xff00ff);
-                scene.remove(nanobot);
-                nanobot = null;
+                const data = nanobot.userData;
+                const pts = data.isGold ? GOLD_NANOBOT.bonus : 1;
+                score += pts;
+
+                // La serpiente adopta el color del nanobot absorbido
+                currentSnakeColorHex = data.tintColor;
+                headColorTarget.setHex(currentSnakeColorHex);
+                pulseWave = { pos: 0, strength: 1 };
+
+                absorbNanobot(nanobot);
                 clearTimeout(nanobotTimer);
+                nanobotTimer = null;
+
+                // Efectos: destello de luces, sacudida, explosión en el punto de impacto
+                worldFlash.active = true;
+                worldFlash.color.setHex(data.tintColor);
+                worldFlash.amount = 1;
+                shakeAmount = Math.max(shakeAmount, 0.35);
+                createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z, data.tintColor, 18, 1.2);
+                addShockwave(nanobot.position.x, 0.08, nanobot.position.z, data.tintColor);
+                flashOverlay('rgba(255,255,255,0.22)');
+                showEatToast(data.colorName, pts);
+
+                // El HUD de puntuación se tiñe con el color absorbido
+                document.getElementById('score').style.color = '#' + currentSnakeColorHex.toString(16).padStart(6, '0');
 
                 if (score % CONFIG.GROWTH_THRESHOLD === 0) {
                     levelUp();
-                } else {
-                    createNanobot();
                 }
 
                 updateUI();
@@ -1689,12 +2372,13 @@
             else if (direction.y === -1) snake[0].rotation.y = Math.PI;
             else if (direction.y === 1) snake[0].rotation.y = 0;
 
+            refreshSnakeRefs();
             document.getElementById('length').textContent = snake.length;
         }
 
         function levelUp() {
             level++;
-            
+
             const levelUpEl = document.getElementById('levelUp');
             levelUpEl.textContent = `¡NIVEL ${level}!`;
             levelUpEl.classList.add('active');
@@ -1704,24 +2388,24 @@
                 gx: seg.userData.gridX,
                 gz: seg.userData.gridZ
             }));
-            
+
             const oldGridWidth = gridWidth;
             const oldGridHeight = gridHeight;
 
             calculateGridSize();
-            
+
             const deltaWidth = gridWidth - oldGridWidth;
             const deltaHeight = gridHeight - oldGridHeight;
-            
+
             const offsetX = Math.floor(deltaWidth / 2);
             const offsetZ = 0;
-            
+
             createGrid();
             updateCamera();
 
             snake.forEach(seg => scene.remove(seg));
             snake = [];
-            
+
             snakeGridPositions.forEach((pos, i) => {
                 const newX = pos.gx + offsetX;
                 const newZ = pos.gz;
@@ -1733,18 +2417,20 @@
             else if (direction.y === -1) snake[0].rotation.y = Math.PI;
             else if (direction.y === 1) snake[0].rotation.y = 0;
 
+            refreshSnakeRefs();
+
             const obstacleGridPositions = obstacles.map(obs => ({
                 gx: obs.userData.gridX,
                 gz: obs.userData.gridZ
             }));
-            
+
             obstacles.forEach(obs => scene.remove(obs));
             obstacles = [];
-            
+
             obstacleGridPositions.forEach(pos => {
                 const newGx = pos.gx + offsetX;
                 const newGz = pos.gz;
-                
+
                 const group = createObstacleAt(newGx, newGz);
                 if (group) obstacles.push(group);
             });
@@ -1753,22 +2439,29 @@
                 createObstacleInBottomZone(oldGridHeight, deltaHeight);
             }
 
-            createNanobot();
+            if (!nanobot || !nanobot.userData.absorbing) {
+                createNanobot();
+            }
+
             document.getElementById('level').textContent = level;
         }
 
         function gameOver() {
             gameRunning = false;
-            
+
             snake.forEach(seg => {
-                createExplosion(seg.position.x, seg.position.y + 0.3, seg.position.z, 0x00ffff);
+                createExplosion(seg.position.x, seg.position.y + 0.3, seg.position.z, 0x00ffff, 12, 1);
             });
 
+            shakeAmount = 1.6;
+            flashOverlay('rgba(255, 30, 60, 0.5)');
+            pulseWave = { pos: 0, strength: 0 };
+
             const isNewRecord = saveRecord(score);
-            
+
             document.getElementById('finalScore').textContent = score;
             document.getElementById('newRecordText').classList.toggle('hidden', !isNewRecord);
-            
+
             setTimeout(() => {
                 hideGameUI();
                 showMenu('gameOverScreen');
@@ -1793,23 +2486,118 @@
             document.getElementById('score').textContent = score;
             document.getElementById('length').textContent = snake.length;
             document.getElementById('level').textContent = level;
+
+            if (score !== lastScoreShown) {
+                lastScoreShown = score;
+                const scoreEl = document.getElementById('score');
+                scoreEl.classList.remove('bump');
+                void scoreEl.offsetWidth;
+                scoreEl.classList.add('bump');
+            }
         }
 
         function updateTimerDisplay() {
             if (!nanobot || !gameRunning || gamePaused) return;
-            
+
+            // Durante la absorción no mostramos el temporizador
+            if (nanobot.userData.absorbing) {
+                document.getElementById('timerFill').style.width = '0%';
+                return;
+            }
+
             const elapsed = Date.now() - nanobotStartTime;
             const remaining = Math.max(0, CONFIG.NANOBOT_LIFETIME - elapsed);
             const percent = (remaining / CONFIG.NANOBOT_LIFETIME) * 100;
-            
+
             document.getElementById('timerFill').style.width = percent + '%';
         }
 
-        function animate() {
-            requestAnimationFrame(animate);
+        // ===== ANIMACIONES POR FRAME =====
+        function updateAbsorption(time) {
+            if (!nanobot || !nanobot.userData.absorbing) return;
+            const data = nanobot.userData;
+            data.absorbT += 0.02;
+            const p = Math.min(1, data.absorbT / 0.55);
 
-            const time = Date.now() * 0.001;
+            // Colores parpadeantes: cicla y luego vuelve a su color original
+            const flashColor = new THREE.Color().setHSL((time * 1.5) % 1, 1, 0.6);
+            data.shieldMat.color.copy(flashColor).lerp(data.baseColor, p);
+            data.shieldMat.emissive.copy(data.baseColor);
+            data.coreMat.color.copy(flashColor);
+            data.coreMat.emissive.copy(flashColor);
+            data.coreMat.emissiveIntensity = 0.9 + Math.sin(time * 40) * 0.6;
+            data.innerMat.color.copy(flashColor);
+            data.ringMats.forEach(m => { m.color.copy(flashColor).lerp(data.baseColor, p); });
+            data.baseRingMat.color.copy(flashColor).lerp(data.baseColor, p);
+            data.glowMat.color.copy(flashColor).lerp(data.baseColor, p);
+            data.glowMat.opacity = 0.5 + Math.sin(time * 30) * 0.3;
 
+            // Vuela hacia la cabeza de la serpiente y encoge
+            if (snake.length) {
+                const head = snake[0];
+                nanobot.position.x += (head.position.x - nanobot.position.x) * 0.16;
+                nanobot.position.z += (head.position.z - nanobot.position.z) * 0.16;
+                nanobot.position.y = 0.5 + p * 1.3;
+            }
+            const s = Math.max(0.05, 1 - p * 1.35);
+            nanobot.scale.setScalar(s);
+
+            if (p >= 1) {
+                createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z, data.tintColor, 14, 0.8);
+                addShockwave(nanobot.position.x, 0.08, nanobot.position.z, data.tintColor);
+                scene.remove(nanobot);
+                nanobot = null;
+                if (gameRunning && !gamePaused) {
+                    createNanobot();
+                }
+            }
+        }
+
+        function updateSnakeColorTransition() {
+            displayHeadColor.lerp(headColorTarget, 0.08);
+            const hexStr = displayHeadColor.getHexString();
+
+            if (headRefs.bodyMat) {
+                headRefs.bodyMat.color.copy(displayHeadColor);
+                headRefs.bodyMat.emissive.copy(displayHeadColor);
+                headRefs.bodyMat.emissiveIntensity = 0.3 + pulseWave.strength * 0.7;
+            }
+            if (headRefs.visorMat) {
+                headRefs.visorMat.color.copy(displayHeadColor);
+                headRefs.visorMat.opacity = 0.45 + Math.sin(Date.now() * 0.006) * 0.15;
+            }
+            if (headRefs.auraMat) {
+                headRefs.auraMat.color.copy(displayHeadColor);
+                headRefs.auraMat.opacity = 0.4 + pulseWave.strength * 0.3;
+            }
+            if (tailGlowRef) {
+                tailGlowRef.material.color.lerp(displayHeadColor, 0.06);
+            }
+
+            // La ola de color viaja por el cuerpo
+            if (pulseWave.strength > 0.01) {
+                pulseWave.pos += 0.5;
+                pulseWave.strength *= 0.955;
+            } else {
+                pulseWave = { pos: 0, strength: 0 };
+            }
+
+            snake.forEach((seg, i) => {
+                if (i > 0 && seg.userData.bodyMat) {
+                    const dist = Math.abs(i - pulseWave.pos);
+                    const pulse = pulseWave.strength * Math.exp(-dist * 0.35);
+                    seg.userData.bodyMat.emissive.copy(seg.userData.baseEmissive);
+                    if (pulse > 0.02) {
+                        seg.userData.bodyMat.emissive.lerp(displayHeadColor, Math.min(1, pulse * 1.4));
+                        seg.userData.bodyMat.emissiveIntensity = 0.12 + pulse * 0.9;
+                    } else {
+                        seg.userData.bodyMat.emissiveIntensity = 0.12;
+                    }
+                }
+            });
+        }
+
+        function updateFrame(time) {
             if (gameRunning && !gamePaused) {
                 updateSnake();
                 updateTimerDisplay();
@@ -1839,13 +2627,43 @@
 
             // Animate nanobot
             if (nanobot) {
-                nanobot.rotation.y += 0.03;
-                nanobot.position.y = 0.5 + Math.sin(time * 4) * 0.15;
+                if (!nanobot.userData.absorbing) {
+                    nanobot.rotation.y += 0.03;
+                    nanobot.position.y = 0.5 + Math.sin(time * 4) * 0.15;
+                } else {
+                    nanobot.rotation.y += 0.12;
+                }
                 nanobot.children.forEach(child => {
                     if (child.userData.rotSpeed) {
                         child.rotation.z += child.userData.rotSpeed;
                     }
                 });
+            }
+
+            // Absorción de nanobot (cambio de color del elemento)
+            updateAbsorption(time);
+
+            // Transición de color de la serpiente (cambio de color al tragar)
+            updateSnakeColorTransition();
+
+            // Destello de luces del mundo al absorber un color
+            if (worldFlash.active) {
+                const w = worldFlash.amount;
+                cyanLight.color.lerp(worldFlash.color, w * 0.4);
+                magentaLight.color.lerp(worldFlash.color, w * 0.4);
+                worldFlash.amount *= 0.92;
+                if (worldFlash.amount < 0.03) {
+                    worldFlash.active = false;
+                    applyLights();
+                }
+            }
+
+            // Sacudida de cámara
+            if (shakeAmount > 0.005) {
+                shakeAmount *= 0.9;
+                camera.position.x += (Math.random() - 0.5) * shakeAmount;
+                camera.position.y += (Math.random() - 0.5) * shakeAmount * 0.6;
+                camera.position.z += (Math.random() - 0.5) * shakeAmount;
             }
 
             // Animate obstacles
@@ -1866,7 +2684,7 @@
                             child.position.z = 0.45 + Math.sin(time * 12) * 0.15;
                             child.rotation.y = Math.sin(time * 8) * 0.1;
                         }
-                        
+
                         if (child.userData && child.userData.isHypnoticEye) {
                             child.children.forEach(eyePart => {
                                 if (eyePart.userData && eyePart.userData.isSpiral) {
@@ -1877,7 +2695,7 @@
                                 }
                             });
                         }
-                        
+
                         if (child.userData && child.userData.isAntennaTip) {
                             child.material.opacity = 0.5 + Math.sin(time * 6) * 0.4;
                             const glowScale = 1 + Math.sin(time * 8) * 0.3;
@@ -1906,6 +2724,19 @@
                         child.rotation.z = Math.PI / 4 + time * 0.5 + child.userData.cornerIndex * 0.5;
                         child.scale.setScalar(1 + Math.sin(time * 2 + child.userData.cornerIndex) * 0.2);
                     }
+                    if (child.userData.isPillarCap) {
+                        child.rotation.y = time * 1.5;
+                        child.scale.setScalar(1 + Math.sin(time * 3) * 0.25);
+                    }
+                    if (child.userData.isPillarTip) {
+                        child.material.opacity = 0.4 + Math.sin(time * 4) * 0.25;
+                    }
+                    if (child.userData.isTowerTip) {
+                        child.material.opacity = 0.3 + Math.sin(time * 2.5 + child.position.x) * 0.2;
+                    }
+                    if (child.userData.isTowerCore) {
+                        child.rotation.y += 0.02;
+                    }
                 });
             }
 
@@ -1923,22 +2754,53 @@
                 }
             }
 
+            // Update shockwaves / explosion flashes
+            for (let i = rings.length - 1; i >= 0; i--) {
+                const r = rings[i];
+                if (r.userData.isShockwave) {
+                    r.userData.life -= 0.02;
+                    const s = 1 + (1 - r.userData.life) * 2.2;
+                    r.scale.setScalar(s);
+                    r.material.opacity = Math.max(0, r.userData.life) * 0.8;
+                    if (r.userData.life <= 0) {
+                        scene.remove(r);
+                        rings.splice(i, 1);
+                    }
+                } else if (r.userData.isExplosionFlash) {
+                    r.userData.life -= 0.045;
+                    r.material.opacity = Math.max(0, r.userData.life) * 0.9;
+                    r.scale.setScalar(r.userData.baseScale * (1.6 - r.userData.life * 0.6));
+                    if (r.userData.life <= 0) {
+                        scene.remove(r);
+                        rings.splice(i, 1);
+                    }
+                }
+            }
+
             renderer.render(scene, camera);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            updateFrame(Date.now() * 0.001);
         }
 
         function onWindowResize() {
             const aspect = window.innerWidth / window.innerHeight;
             renderer.setSize(window.innerWidth, window.innerHeight);
-            
+
             if (gridWidth && gridHeight) {
                 updateCamera();
             }
         }
 
         // ===== EVENT LISTENERS =====
-        
+
         // Keyboard
         document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key.startsWith('Arrow')) {
+                e.preventDefault();
+            }
             if (!gameRunning || gamePaused) return;
 
             switch (e.key.toLowerCase()) {
@@ -1984,10 +2846,10 @@
 
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
-            
+
             const deltaX = touchEndX - touchStartX;
             const deltaY = touchEndY - touchStartY;
-            
+
             if (Math.abs(deltaX) < touchThreshold && Math.abs(deltaY) < touchThreshold) {
                 return;
             }
@@ -2008,25 +2870,54 @@
         }, { passive: false });
 
         // ===== MENU BUTTONS =====
-        
+
         // Main Menu
         document.getElementById('btnPlay').addEventListener('click', initGame);
-        
+
         document.getElementById('btnSpeed').addEventListener('click', () => {
             showMenu('speedMenu');
         });
-        
+
         document.getElementById('btnRecords').addEventListener('click', () => {
             updateRecordsList();
             showMenu('recordsMenu');
         });
-        
+
         document.getElementById('btnExit').addEventListener('click', () => {
             if (confirm('¿Seguro que quieres salir?')) {
                 window.close();
                 // Fallback if window.close doesn't work
                 document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#0ff;font-family:Orbitron,sans-serif;font-size:24px;background:#000;">¡Gracias por jugar!</div>';
             }
+        });
+
+        // Light mode buttons
+        document.getElementById('lightBtnCyber').addEventListener('click', () => {
+            setLightMode('cyber');
+        });
+
+        document.getElementById('lightBtnCustom').addEventListener('click', () => {
+            setLightMode('custom');
+        });
+
+        document.getElementById('lightHue').addEventListener('input', (e) => {
+            customHue = (parseInt(e.target.value) % 360) / 360;
+            updateSwatch();
+            applyLights();
+            saveLightSettings();
+        });
+
+        document.getElementById('lightSat').addEventListener('input', (e) => {
+            customSat = parseInt(e.target.value) / 100;
+            updateSwatch();
+            applyLights();
+            saveLightSettings();
+        });
+
+        document.getElementById('lightInt').addEventListener('input', (e) => {
+            customInt = parseInt(e.target.value) / 100;
+            applyLights();
+            saveLightSettings();
         });
 
         // Speed Menu
@@ -2091,12 +2982,12 @@
 
         Object.entries(dpadButtons).forEach(([id, dir]) => {
             const btn = document.getElementById(id);
-            
+
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (!gameRunning || gamePaused) return;
                 btn.classList.add('active');
-                
+
                 if (dir.x !== 0 && direction.x !== -dir.x) {
                     nextDirection = { ...dir };
                 } else if (dir.y !== 0 && direction.y !== -dir.y) {
@@ -2112,7 +3003,7 @@
             btn.addEventListener('mousedown', (e) => {
                 if (!gameRunning || gamePaused) return;
                 btn.classList.add('active');
-                
+
                 if (dir.x !== 0 && direction.x !== -dir.x) {
                     nextDirection = { ...dir };
                 } else if (dir.y !== 0 && direction.y !== -dir.y) {
@@ -2126,7 +3017,7 @@
 
         // Turbo button
         const turboBtn = document.getElementById('turboBtn');
-        
+
         turboBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             turboBtn.classList.add('active');
@@ -2164,6 +3055,7 @@
         calculateGridSize();
         updateCamera();
         loadSavedSpeed();
+        loadLightSettings();
         updateRecordsList();
         animate();
     </script>
