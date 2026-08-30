@@ -29,6 +29,33 @@
             height: 100%;
         }
 
+        /* Viñeta cinematográfica para dar profundidad */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center,
+                rgba(0, 0, 0, 0) 52%,
+                rgba(0, 2, 12, 0.38) 82%,
+                rgba(0, 2, 14, 0.62) 100%);
+            z-index: 90;
+        }
+
+        /* Flash de pantalla al tragar un nanobot */
+        #flashOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 95;
+        }
+
         /* HUD del juego */
         #ui {
             position: fixed;
@@ -140,7 +167,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(ellipse at center, rgba(0, 50, 80, 0.97), rgba(0, 10, 20, 0.99));
+            background: radial-gradient(ellipse at center, rgba(0, 50, 80, 0.90), rgba(0, 10, 20, 0.96));
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -524,7 +551,7 @@
         .turbo-btn {
             width: 65px;
             height: 80px;
-            background: linear-gradient(180deg, 
+            background: linear-gradient(180deg,
                 rgba(255, 100, 0, 0.08) 0%,
                 rgba(255, 50, 100, 0.12) 40%,
                 rgba(255, 0, 150, 0.15) 70%,
@@ -538,7 +565,7 @@
             align-items: center;
             flex-direction: column;
             transition: all 0.15s ease;
-            box-shadow: 
+            box-shadow:
                 0 0 10px rgba(255, 100, 0, 0.1),
                 inset 0 -8px 15px rgba(0, 0, 0, 0.1),
                 inset 0 8px 15px rgba(255, 255, 255, 0.03);
@@ -559,7 +586,7 @@
         }
 
         .turbo-btn:active, .turbo-btn.active {
-            background: linear-gradient(180deg, 
+            background: linear-gradient(180deg,
                 rgba(255, 200, 0, 0.25) 0%,
                 rgba(255, 100, 50, 0.3) 40%,
                 rgba(255, 50, 150, 0.35) 70%,
@@ -567,7 +594,7 @@
             );
             border-color: rgba(255, 255, 0, 0.4);
             transform: scale(0.95);
-            box-shadow: 
+            box-shadow:
                 0 0 20px rgba(255, 200, 0, 0.25),
                 inset 0 -8px 15px rgba(0, 0, 0, 0.15),
                 inset 0 8px 15px rgba(255, 255, 255, 0.08);
@@ -613,9 +640,11 @@
 </head>
 <body>
     <div id="gameCanvas"></div>
-    
+
+    <div class="vignette"></div>
+    <div id="flashOverlay"></div>
     <div class="scanlines"></div>
-    
+
     <!-- HUD del juego -->
     <div id="ui" class="hidden">
         <div class="hud-panel">
@@ -667,12 +696,12 @@
     <div class="menu-screen" id="mainMenu">
         <div class="title">CYBER SNAKE</div>
         <div class="subtitle">NANOBOT HUNTER</div>
-        
+
         <button class="menu-btn" id="btnPlay">🎮 JUGAR</button>
         <button class="menu-btn secondary" id="btnSpeed">⚡ VELOCIDAD</button>
         <button class="menu-btn" id="btnRecords">🏆 RÉCORDS</button>
         <button class="menu-btn danger" id="btnExit">🚪 SALIR</button>
-        
+
         <div class="controls-info">
             <span>↑ ↓ ← →</span> o <span>W A S D</span> para mover<br>
             <span>DESLIZA</span> o usa el <span>D-PAD</span> táctil<br>
@@ -683,24 +712,24 @@
     <!-- MENÚ DE VELOCIDAD -->
     <div class="menu-screen hidden" id="speedMenu">
         <div class="title title-small">⚡ VELOCIDAD</div>
-        
+
         <div class="speed-selector">
             <div class="speed-label">Velocidad de la serpiente</div>
             <div class="speed-value" id="speedValueDisplay">NORMAL</div>
             <input type="range" min="1" max="5" value="3" class="speed-slider" id="speedSlider">
         </div>
-        
+
         <button class="menu-btn" id="btnSpeedBack">← VOLVER</button>
     </div>
 
     <!-- MENÚ DE RÉCORDS -->
     <div class="menu-screen hidden" id="recordsMenu">
         <div class="title title-small">🏆 RÉCORDS</div>
-        
+
         <div class="records-list" id="recordsList">
             <div class="no-records">No hay récords todavía</div>
         </div>
-        
+
         <button class="menu-btn danger small" id="btnClearRecords">🗑 BORRAR RÉCORDS</button>
         <button class="menu-btn" id="btnRecordsBack">← VOLVER</button>
     </div>
@@ -708,13 +737,13 @@
     <!-- MENÚ DE PAUSA -->
     <div class="menu-screen hidden" id="pauseMenu">
         <div class="title title-small">⏸ PAUSA</div>
-        
+
         <div class="speed-selector">
             <div class="speed-label">Velocidad de la serpiente</div>
             <div class="speed-value" id="pauseSpeedValueDisplay">NORMAL</div>
             <input type="range" min="1" max="5" value="3" class="speed-slider" id="pauseSpeedSlider">
         </div>
-        
+
         <button class="menu-btn" id="btnResume">▶ CONTINUAR</button>
         <button class="menu-btn secondary" id="btnRestartPause">🔄 REINICIAR</button>
         <button class="menu-btn danger" id="btnExitToMenu">🏠 MENÚ PRINCIPAL</button>
@@ -725,12 +754,21 @@
         <div class="title title-small">💀 GAME OVER</div>
         <div class="new-record hidden" id="newRecordText">🎉 ¡NUEVO RÉCORD! 🎉</div>
         <div class="final-score">SCORE: <span id="finalScore">0</span></div>
-        
+
         <button class="menu-btn" id="btnRestart">🔄 REINICIAR</button>
         <button class="menu-btn secondary" id="btnGameOverMenu">🏠 MENÚ PRINCIPAL</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Post-procesado (bloom). Si alguno de estos scripts no carga, el juego funciona igual sin bloom. -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/Pass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
     <script>
         // ===== CONFIGURACIÓN =====
         const SPEED_SETTINGS = {
@@ -750,6 +788,17 @@
             OBSTACLE_PER_LEVEL: 3
         };
 
+        // Paleta de colores neón para los nanobots (cada nanobot tiene su propio color)
+        const NANO_PALETTE = [
+            0xff2fd6, // magenta rosa
+            0x00e5ff, // cian eléctrico
+            0x8aff00, // verde lima
+            0xffb300, // ámbar dorado
+            0xff4433, // rojo coral
+            0xa06bff, // violeta
+            0x00ffa3  // verde menta
+        ];
+
         // ===== ESTADO DEL JUEGO =====
         let scene, camera, renderer;
         let snake = [];
@@ -765,12 +814,44 @@
         let gridWidth, gridHeight;
         let gameRunning = false;
         let gamePaused = false;
+        let pauseStartTime = 0;
         let lastMoveTime = 0;
         let currentSpeed = CONFIG.SNAKE_SPEED;
         let baseSpeed = CONFIG.SNAKE_SPEED;
         let gridFloor = null;
         let nebulaParticles = [];
         let currentSpeedLevel = 3;
+
+        // ===== ESTADO DE EFECTOS VISUALES =====
+        let composer = null;
+        let bloomPass = null;
+        let useBloom = false;
+        let glowTex = null;          // Textura radial compartida para halos/destellos
+        let beamTex = null;          // Textura de gradiente vertical para haces de luz
+        let backdrop = null;         // Skyline retro-futurista del fondo
+        let shards = [];             // Fragmentos flotantes (parallax)
+        let snakeGlowPts = null;     // Puntos de brillo en el suelo bajo la serpiente
+        let snakeGlowPos = null;
+        let snakeGlowCol = null;
+        const SNAKE_GLOW_MAX = 160;
+        let headPool = null;         // Charco de luz bajo la cabeza
+        let nanoPool = null;         // Charco de luz bajo el nanobot
+        let nanobotColor = new THREE.Color(0xff2fd6);
+        let eatWave = null;          // Onda de color que recorre la serpiente al comer
+        let headFlash = 0;           // Destello de la cabeza al comer
+        let headFlashColor = new THREE.Color(0xffffff);
+        let absorbAnims = [];        // Animaciones de absorción de nanobots
+        let shockwaves = [];         // Ondas expansivas
+        let camBase = { x: 0, y: 25, z: 12, fov: 55 };
+        let camLook = { x: 0, y: 0, z: 0 };
+        let fovKick = 0;             // Golpe de zoom al comer
+        let shakeTime = 0;           // Sacudida de cámara al morir
+        let shakeMag = 0.9;
+        let flashEl = null;          // Overlay de flash en pantalla
+        let lastFrameTime = 0;
+        let perfAccum = 0, perfSamples = 0, perfChecked = false;
+        const WHITE = new THREE.Color(0xffffff);
+        const tmpColor = new THREE.Color();
 
         // Touch controls
         let touchStartX = 0;
@@ -812,7 +893,7 @@
         function updateRecordsList() {
             const records = getRecords();
             const container = document.getElementById('recordsList');
-            
+
             if (records.length === 0) {
                 container.innerHTML = '<div class="no-records">No hay récords todavía</div>';
                 return;
@@ -895,11 +976,53 @@
             }
         }
 
+        // ===== TEXTURAS PROCEDURALES (assets 3D generados) =====
+        function makeGlowTexture() {
+            const c = document.createElement('canvas');
+            c.width = c.height = 128;
+            const ctx = c.getContext('2d');
+            const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+            g.addColorStop(0, 'rgba(255,255,255,1)');
+            g.addColorStop(0.22, 'rgba(255,255,255,0.85)');
+            g.addColorStop(0.55, 'rgba(255,255,255,0.22)');
+            g.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, 128, 128);
+            return new THREE.CanvasTexture(c);
+        }
+
+        function makeBeamTexture() {
+            const c = document.createElement('canvas');
+            c.width = 32; c.height = 128;
+            const ctx = c.getContext('2d');
+            const g = ctx.createLinearGradient(0, 0, 0, 128);
+            g.addColorStop(0, 'rgba(255,255,255,0)');
+            g.addColorStop(0.7, 'rgba(255,255,255,0.35)');
+            g.addColorStop(1, 'rgba(255,255,255,0.9)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, 32, 128);
+            return new THREE.CanvasTexture(c);
+        }
+
+        // Libera geometrías y materiales de un objeto eliminado de la escena
+        function disposeObject(obj) {
+            obj.traverse(node => {
+                if (node.isMesh && node.geometry) node.geometry.dispose();
+                if (node.material) {
+                    const mats = Array.isArray(node.material) ? node.material : [node.material];
+                    mats.forEach(m => {
+                        if (m.map && m.map !== glowTex && m.map !== beamTex) m.map.dispose();
+                        m.dispose();
+                    });
+                }
+            });
+        }
+
         // ===== THREE.JS SETUP =====
         function calculateGridSize() {
             const aspect = window.innerWidth / window.innerHeight;
             const baseSize = 7 + (level - 1) * 3;
-            
+
             if (aspect < 1) {
                 gridWidth = Math.round(baseSize * 0.85);
                 gridHeight = Math.round(gridWidth / aspect * 0.82);
@@ -909,9 +1032,45 @@
             }
         }
 
+        function isLowEndDevice() {
+            const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const fewCores = (navigator.hardwareConcurrency || 8) <= 4;
+            return mobile || fewCores;
+        }
+
+        function setupPostFX() {
+            useBloom = false;
+            try {
+                if (typeof THREE.EffectComposer === 'function' &&
+                    typeof THREE.RenderPass === 'function' &&
+                    typeof THREE.UnrealBloomPass === 'function') {
+
+                    composer = new THREE.EffectComposer(renderer);
+                    composer.addPass(new THREE.RenderPass(scene, camera));
+
+                    const lowEnd = isLowEndDevice();
+                    if (lowEnd) composer.setPixelRatio(1);
+
+                    bloomPass = new THREE.UnrealBloomPass(
+                        new THREE.Vector2(window.innerWidth, window.innerHeight),
+                        lowEnd ? 0.95 : 1.15,  // intensidad
+                        0.55,                  // radio
+                        0.38                   // umbral
+                    );
+                    composer.addPass(bloomPass);
+                    useBloom = true;
+                }
+            } catch (err) {
+                console.warn('Bloom no disponible, usando renderizado estándar:', err);
+                composer = null;
+                useBloom = false;
+            }
+        }
+
         function initThree() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x000510);
+            scene.fog = new THREE.FogExp2(0x000510, 0.0085);
 
             const aspect = window.innerWidth / window.innerHeight;
             camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
@@ -924,6 +1083,10 @@
             document.getElementById('gameCanvas').appendChild(renderer.domElement);
 
             calculateGridSize();
+
+            // Texturas procedurales para los efectos de luz
+            glowTex = makeGlowTexture();
+            beamTex = makeBeamTexture();
 
             // Lighting
             const ambientLight = new THREE.AmbientLight(0x334466, 0.8);
@@ -942,6 +1105,12 @@
             scene.add(magentaLight);
 
             createBackground();
+            createBackdrop();
+            createShards();
+            initLightPools();
+            initSnakeGlow();
+            setupPostFX();
+
             window.addEventListener('resize', onWindowResize);
         }
 
@@ -949,12 +1118,12 @@
             const aspect = window.innerWidth / window.innerHeight;
             const totalWidth = gridWidth * CONFIG.CELL_SIZE;
             const totalHeight = gridHeight * CONFIG.CELL_SIZE;
-            
+
             camera.fov = 55;
             const fov = camera.fov * (Math.PI / 180);
-            
+
             let cameraHeight, cameraZ, lookAtY, lookAtZ;
-            
+
             if (aspect < 1) {
                 const requiredHeightForWidth = (totalWidth / 2) / Math.tan(fov / 2) / aspect;
                 cameraHeight = requiredHeightForWidth * 1.05;
@@ -968,11 +1137,15 @@
                 lookAtY = 0;
                 lookAtZ = -totalHeight * 0.05;
             }
-            
+
             camera.position.set(0, cameraHeight, cameraZ);
             camera.lookAt(0, lookAtY, lookAtZ);
             camera.aspect = aspect;
             camera.updateProjectionMatrix();
+
+            // Guardar posición base para el balanceo cinemático
+            camBase = { x: 0, y: cameraHeight, z: cameraZ, fov: camera.fov };
+            camLook = { x: 0, y: lookAtY, z: lookAtZ };
         }
 
         function createBackground() {
@@ -997,21 +1170,21 @@
                     uniform vec3 color2;
                     uniform vec3 color3;
                     varying vec2 vUv;
-                    
+
                     void main() {
                         vec2 p = vUv * 2.0 - 1.0;
                         float d = length(p);
-                        
+
                         float wave1 = sin(p.x * 3.0 + time * 0.5) * cos(p.y * 3.0 + time * 0.3);
                         float wave2 = sin(p.x * 5.0 - time * 0.4) * sin(p.y * 4.0 + time * 0.6);
                         float wave3 = cos(d * 8.0 - time * 0.8) * 0.5;
-                        
+
                         float pattern = (wave1 + wave2 + wave3) * 0.33 + 0.5;
-                        
+
                         vec3 col = mix(color1, color2, pattern);
                         col = mix(col, color3, sin(d * 4.0 + time * 0.2) * 0.5 + 0.5);
                         col += vec3(0.0, 0.05, 0.1) * (1.0 - d * 0.5);
-                        
+
                         gl_FragColor = vec4(col, 1.0);
                     }
                 `
@@ -1072,7 +1245,7 @@
                     opacity: 0.3 + Math.random() * 0.3
                 });
                 const orb = new THREE.Mesh(orbGeom, orbMat);
-                
+
                 const radius = 20 + Math.random() * 40;
                 const angle = Math.random() * Math.PI * 2;
                 orb.position.set(Math.cos(angle) * radius, -2 - Math.random() * 3, Math.sin(angle) * radius);
@@ -1089,8 +1262,190 @@
             }
         }
 
+        // Skyline retro-futurista con sol sintético para mayor profundidad
+        function createBackdrop() {
+            const geo = new THREE.PlaneGeometry(600, 300);
+            const mat = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: { value: 0 }
+                },
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float time;
+                    varying vec2 vUv;
+
+                    float hash(float n) {
+                        return fract(sin(n * 127.1) * 43758.5453);
+                    }
+
+                    void main() {
+                        vec2 uv = vUv;
+                        float hy = 0.36; // altura del horizonte
+
+                        // Cielo con degradado vertical
+                        vec3 top = vec3(0.004, 0.008, 0.045);
+                        vec3 mid = vec3(0.045, 0.008, 0.115);
+                        vec3 col = mix(mid, top, smoothstep(hy, 1.0, uv.y));
+
+                        // Resplandor del horizonte
+                        float hb = exp(-abs(uv.y - hy) * 13.0);
+                        col += vec3(0.0, 0.34, 0.5) * hb * (0.5 + 0.18 * sin(time * 0.7));
+                        col += vec3(0.4, 0.02, 0.5) * hb * 0.55 * (0.6 + 0.4 * sin(time * 0.5 + 2.0));
+
+                        // Sol sintético sobre el horizonte
+                        vec2 p = vec2((uv.x - 0.5) * 2.0, uv.y - (hy + 0.10));
+                        float d = length(p);
+                        float sun = smoothstep(0.115, 0.108, d);
+                        float stripes = step(0.25, fract(p.y * 34.0 + time * 0.12));
+                        float lowerMask = smoothstep(0.02, -0.08, p.y);
+                        sun *= mix(1.0, stripes, lowerMask);
+                        vec3 sunCol = mix(vec3(1.0, 0.25, 0.55), vec3(1.0, 0.75, 0.25),
+                                          smoothstep(-0.1, 0.11, p.y));
+                        col += sunCol * sun * (0.85 + 0.15 * sin(time * 1.5));
+
+                        // Skyline de la ciudad en el horizonte
+                        float bx = floor(uv.x * 70.0);
+                        float local = fract(uv.x * 70.0);
+                        float bh = hy - 0.012 + hash(bx) * 0.105;
+                        float inCity = step(uv.y, bh) * step(hy - 0.05, uv.y);
+                        // Antenas en algunas azoteas
+                        float ant = step(0.86, hash(bx * 3.7)) *
+                                    step(abs(local - 0.5), 0.045) *
+                                    step(uv.y, bh + 0.035) * step(bh, uv.y);
+                        inCity = max(inCity, ant);
+                        col = mix(col, vec3(0.012, 0.006, 0.035), inCity * 0.94);
+
+                        // Ventanas iluminadas
+                        vec2 wg = vec2(fract(uv.x * 70.0 * 3.0), fract(uv.y * 230.0));
+                        float win = step(0.72, wg.x) * step(0.55, wg.y);
+                        float wlit = step(0.68, hash(bx * 7.3 + floor(uv.y * 230.0) * 13.1));
+                        float flick = 0.65 + 0.35 * sin(time * 2.0 + hash(bx) * 40.0);
+                        vec3 winCol = mix(vec3(1.0, 0.55, 0.15), vec3(0.3, 0.9, 1.0), hash(bx * 11.0));
+                        col += winCol * win * wlit * inCity * 0.85 * flick;
+
+                        // Luz de baliza en las antenas
+                        float beacon = pow(0.5 + 0.5 * sin(time * 3.0 + bx), 8.0);
+                        col += vec3(1.0, 0.1, 0.1) * ant * step(0.028, uv.y - bh) * beacon * 1.5;
+
+                        // Estrellas en el cielo alto
+                        float sx = floor(uv.x * 180.0);
+                        float sy = floor(uv.y * 90.0);
+                        float star = step(0.994, hash(sx * 1.3 + sy * 57.3));
+                        float twinkle = 0.5 + 0.5 * sin(time * 2.5 + sx * 0.7 + sy);
+                        col += vec3(0.75, 0.85, 1.0) * star * twinkle *
+                               smoothstep(hy + 0.12, 0.8, uv.y) * 0.8;
+
+                        // Viñeta para fundirse con el fondo de la escena (#000510)
+                        float vig = smoothstep(1.35, 0.55, length((uv - vec2(0.5, 0.40)) * vec2(1.30, 1.75)));
+                        col = mix(vec3(0.0, 0.02, 0.063), col, vig);
+
+                        gl_FragColor = vec4(col, 1.0);
+                    }
+                `,
+                depthWrite: false
+            });
+            backdrop = new THREE.Mesh(geo, mat);
+            backdrop.position.set(0, 60, -170);
+            backdrop.userData.isBackdrop = true;
+            scene.add(backdrop);
+        }
+
+        // Fragmentos de datos flotando sobre el campo (parallax => profundidad)
+        function createShards() {
+            const geos = [
+                new THREE.TetrahedronGeometry(0.30),
+                new THREE.OctahedronGeometry(0.26),
+                new THREE.IcosahedronGeometry(0.24, 0)
+            ];
+            for (let i = 0; i < 16; i++) {
+                const geo = geos[i % 3];
+                const col = new THREE.Color().setHSL(Math.random(), 1, 0.62);
+                const mat = new THREE.MeshBasicMaterial({
+                    color: col,
+                    transparent: true,
+                    opacity: 0.42,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                });
+                const s = new THREE.Mesh(geo, mat);
+                const R = 15 + Math.random() * 26;
+                const a = Math.random() * Math.PI * 2;
+                s.position.set(Math.cos(a) * R, 2.5 + Math.random() * 6, Math.sin(a) * R);
+                s.userData = {
+                    isShard: true,
+                    rot: new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.02,
+                        (Math.random() - 0.5) * 0.02,
+                        (Math.random() - 0.5) * 0.02
+                    ),
+                    baseY: s.position.y,
+                    bobSpeed: 0.5 + Math.random(),
+                    bobPhase: Math.random() * Math.PI * 2
+                };
+                scene.add(s);
+                shards.push(s);
+            }
+        }
+
+        // Charcos de luz persistentes (cabeza y nanobot)
+        function makePoolMesh(size, colorHex, opacity) {
+            const m = new THREE.Mesh(
+                new THREE.PlaneGeometry(size, size),
+                new THREE.MeshBasicMaterial({
+                    map: glowTex,
+                    color: colorHex,
+                    transparent: true,
+                    opacity: opacity,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                })
+            );
+            m.rotation.x = -Math.PI / 2;
+            m.position.y = 0.015;
+            m.visible = false;
+            scene.add(m);
+            return m;
+        }
+
+        function initLightPools() {
+            headPool = makePoolMesh(2.1, 0x00ffcc, 0.0);
+            nanoPool = makePoolMesh(2.7, 0xff2fd6, 0.0);
+        }
+
+        // Puntos brillantes en el suelo que siguen a cada segmento de la serpiente
+        function initSnakeGlow() {
+            const g = new THREE.BufferGeometry();
+            snakeGlowPos = new Float32Array(SNAKE_GLOW_MAX * 3);
+            snakeGlowCol = new Float32Array(SNAKE_GLOW_MAX * 3);
+            g.setAttribute('position', new THREE.BufferAttribute(snakeGlowPos, 3).setUsage(THREE.DynamicDrawUsage));
+            g.setAttribute('color', new THREE.BufferAttribute(snakeGlowCol, 3).setUsage(THREE.DynamicDrawUsage));
+            g.setDrawRange(0, 0);
+            const m = new THREE.PointsMaterial({
+                size: 1.15,
+                map: glowTex,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.40,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                sizeAttenuation: true
+            });
+            snakeGlowPts = new THREE.Points(g, m);
+            snakeGlowPts.frustumCulled = false;
+            scene.add(snakeGlowPts);
+        }
+
         function createGrid() {
-            if (gridFloor) scene.remove(gridFloor);
+            if (gridFloor) {
+                scene.remove(gridFloor);
+                disposeObject(gridFloor);
+            }
 
             gridFloor = new THREE.Group();
             const totalWidth = gridWidth * CONFIG.CELL_SIZE;
@@ -1113,23 +1468,23 @@
                     uniform float time;
                     uniform vec2 gridSize;
                     varying vec2 vUv;
-                    
+
                     void main() {
                         vec2 grid = vUv * gridSize;
                         vec2 gridLines = abs(fract(grid - 0.5) - 0.5) / fwidth(grid);
                         float line = min(gridLines.x, gridLines.y);
-                        
+
                         float dist = length(vUv - 0.5);
                         vec3 baseColor = mix(vec3(0.02, 0.04, 0.08), vec3(0.0, 0.01, 0.03), dist * 1.5);
-                        
+
                         float pulse = sin(dist * 20.0 - time * 2.0) * 0.5 + 0.5;
                         pulse *= (1.0 - dist) * 0.3;
-                        
+
                         float gridGlow = 1.0 - min(line, 1.0);
                         vec3 gridColor = mix(vec3(0.0, 0.8, 1.0), vec3(1.0, 0.0, 1.0), sin(time * 0.5 + dist * 3.0) * 0.5 + 0.5);
-                        
+
                         vec3 finalColor = baseColor + gridColor * gridGlow * 0.4 + vec3(0.0, pulse * 0.3, pulse * 0.5);
-                        
+
                         gl_FragColor = vec4(finalColor, 0.95);
                     }
                 `,
@@ -1148,7 +1503,12 @@
                 new THREE.Vector3(-totalWidth/2, 0.01, totalHeight/2),
                 new THREE.Vector3(-totalWidth/2, 0.01, -totalHeight/2)
             ]);
-            const edgeMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 });
+            const edgeMat = new THREE.LineBasicMaterial({
+                color: 0x00ffff,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
             const edge = new THREE.Line(edgeGeom, edgeMat);
             edge.userData.isEdge = true;
             gridFloor.add(edge);
@@ -1159,14 +1519,16 @@
                 [totalWidth/2, totalHeight/2],
                 [-totalWidth/2, totalHeight/2]
             ];
-            
+
             corners.forEach((pos, i) => {
                 const markerGeom = new THREE.RingGeometry(0.3, 0.5, 4);
                 const markerMat = new THREE.MeshBasicMaterial({
                     color: 0xff00ff,
                     transparent: true,
                     opacity: 0.7,
-                    side: THREE.DoubleSide
+                    side: THREE.DoubleSide,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
                 });
                 const marker = new THREE.Mesh(markerGeom, markerMat);
                 marker.rotation.x = -Math.PI / 2;
@@ -1174,6 +1536,24 @@
                 marker.position.set(pos[0], 0.02, pos[1]);
                 marker.userData.cornerIndex = i;
                 gridFloor.add(marker);
+
+                // Haces de luz verticales en las esquinas (verticalidad => profundidad)
+                const beamMat = new THREE.MeshBasicMaterial({
+                    map: beamTex,
+                    color: i % 2 === 0 ? 0x00bbff : 0xff33cc,
+                    transparent: true,
+                    opacity: 0.28,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    side: THREE.DoubleSide
+                });
+                const beam = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.20, 0.34, 7, 12, 1, true),
+                    beamMat
+                );
+                beam.position.set(pos[0], 3.5, pos[1]);
+                beam.userData.cornerBeam = i;
+                gridFloor.add(beam);
             });
 
             scene.add(gridFloor);
@@ -1193,38 +1573,54 @@
             const isHead = index === 0;
             const colorIndex = Math.min(index, snakeColors.length - 1);
             const segmentColor = snakeColors[colorIndex];
-            
+            const tintMats = [];
+            let headHalo = null;
+            let ringMat = null;
+            let ringBaseOp = 0;
+
             const sizeFactor = isHead ? 1 : Math.max(0.5, 1 - index * 0.03);
             const baseRadius = 0.35 * sizeFactor;
 
             if (isHead) {
                 const headGroup = new THREE.Group();
-                
+
                 const headGeom = new THREE.SphereGeometry(0.38, 24, 18);
                 headGeom.scale(0.9, 0.55, 1.3);
                 const headMat = new THREE.MeshStandardMaterial({
                     color: 0x00ddaa, metalness: 0.4, roughness: 0.3,
                     emissive: 0x00ffcc, emissiveIntensity: 0.15
                 });
+                tintMats.push({
+                    mat: headMat,
+                    base: new THREE.Color(0x00ddaa),
+                    eBase: new THREE.Color(0x00ffcc),
+                    ei: 0.15
+                });
                 const headBase = new THREE.Mesh(headGeom, headMat);
                 headBase.position.y = 0.22;
                 headGroup.add(headBase);
-                
+
                 const snoutGeom = new THREE.ConeGeometry(0.22, 0.35, 16);
                 snoutGeom.scale(0.8, 1, 1.2);
                 const snoutMat = new THREE.MeshStandardMaterial({
                     color: 0x00eebb, metalness: 0.3, roughness: 0.4,
                     emissive: 0x00ffdd, emissiveIntensity: 0.1
                 });
+                tintMats.push({
+                    mat: snoutMat,
+                    base: new THREE.Color(0x00eebb),
+                    eBase: new THREE.Color(0x00ffdd),
+                    ei: 0.1
+                });
                 const snout = new THREE.Mesh(snoutGeom, snoutMat);
                 snout.rotation.x = Math.PI / 2;
                 snout.position.set(0, 0.18, 0.42);
                 headGroup.add(snout);
-                
+
                 // Eyes
                 function createHypnoticEye(xPos) {
                     const eyeGroup = new THREE.Group();
-                    
+
                     const eyeballGeom = new THREE.SphereGeometry(0.14, 32, 32);
                     const eyeballMat = new THREE.MeshStandardMaterial({
                         color: 0xffffaa, metalness: 0.1, roughness: 0.2,
@@ -1232,7 +1628,7 @@
                     });
                     const eyeball = new THREE.Mesh(eyeballGeom, eyeballMat);
                     eyeGroup.add(eyeball);
-                    
+
                     const spiralColors = [0xff00ff, 0x00ffff, 0xff00ff, 0x00ffff, 0xff00ff];
                     for (let i = 0; i < 5; i++) {
                         const ringRadius = 0.14 * (0.9 - i * 0.15);
@@ -1246,23 +1642,23 @@
                         spiral.userData.isSpiral = true;
                         eyeGroup.add(spiral);
                     }
-                    
+
                     const pupilGeom = new THREE.CircleGeometry(0.035, 16);
                     const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
                     const pupil = new THREE.Mesh(pupilGeom, pupilMat);
                     pupil.position.z = 0.06;
                     eyeGroup.add(pupil);
-                    
+
                     eyeGroup.position.set(xPos, 0.32, 0.22);
                     eyeGroup.rotation.y = xPos > 0 ? 0.25 : -0.25;
                     eyeGroup.userData.isHypnoticEye = true;
-                    
+
                     return eyeGroup;
                 }
-                
+
                 headGroup.add(createHypnoticEye(0.2));
                 headGroup.add(createHypnoticEye(-0.2));
-                
+
                 // Tongue
                 const tongueGroup = new THREE.Group();
                 const tongueBaseGeom = new THREE.CylinderGeometry(0.025, 0.02, 0.25, 8);
@@ -1271,55 +1667,79 @@
                 tongueBase.rotation.x = Math.PI / 2;
                 tongueBase.position.z = 0.12;
                 tongueGroup.add(tongueBase);
-                
+
                 const forkGeom = new THREE.ConeGeometry(0.018, 0.12, 6);
                 const leftFork = new THREE.Mesh(forkGeom, tongueMat);
                 leftFork.rotation.x = Math.PI / 2;
                 leftFork.rotation.z = 0.4;
                 leftFork.position.set(0.04, 0, 0.28);
                 tongueGroup.add(leftFork);
-                
+
                 const rightFork = new THREE.Mesh(forkGeom, tongueMat);
                 rightFork.rotation.x = Math.PI / 2;
                 rightFork.rotation.z = -0.4;
                 rightFork.position.set(-0.04, 0, 0.28);
                 tongueGroup.add(rightFork);
-                
+
                 tongueGroup.position.set(0, 0.15, 0.45);
                 tongueGroup.userData.isTongue = true;
                 headGroup.add(tongueGroup);
-                
+
                 // Antenna
                 const antennaGeom = new THREE.CylinderGeometry(0.015, 0.025, 0.18, 8);
                 const antennaMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
                 const antenna = new THREE.Mesh(antennaGeom, antennaMat);
                 antenna.position.set(0, 0.48, -0.15);
                 headGroup.add(antenna);
-                
+
                 const antennaTipGeom = new THREE.SphereGeometry(0.04, 8, 8);
                 const antennaTipMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.9 });
                 const antennaTip = new THREE.Mesh(antennaTipGeom, antennaTipMat);
                 antennaTip.position.set(0, 0.58, -0.15);
                 antennaTip.userData.isAntennaTip = true;
                 headGroup.add(antennaTip);
-                
+
+                // Halo energético alrededor de la cabeza
+                headHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+                    map: glowTex,
+                    color: 0x66ffee,
+                    transparent: true,
+                    opacity: 0.30,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                }));
+                headHalo.scale.set(1.35, 1.35, 1);
+                headHalo.position.set(0, 0.28, 0);
+                headGroup.add(headHalo);
+
                 group.add(headGroup);
 
             } else {
                 const bodyGeom = new THREE.SphereGeometry(baseRadius, 12, 10);
                 bodyGeom.scale(1, 0.7, 1.1);
-                
+
                 const bodyMat = new THREE.MeshStandardMaterial({
                     color: segmentColor, metalness: 0.6, roughness: 0.3,
                     emissive: segmentColor, emissiveIntensity: 0.15
+                });
+                tintMats.push({
+                    mat: bodyMat,
+                    base: new THREE.Color(segmentColor),
+                    eBase: new THREE.Color(segmentColor),
+                    ei: 0.15
                 });
                 const body = new THREE.Mesh(bodyGeom, bodyMat);
                 body.position.y = 0.2;
                 group.add(body);
 
                 const ringGeom = new THREE.TorusGeometry(baseRadius * 0.9, 0.02, 8, 16);
-                const ringMat = new THREE.MeshBasicMaterial({
-                    color: 0x00ffff, transparent: true, opacity: 0.5 - index * 0.02
+                ringBaseOp = Math.max(0.18, 0.5 - index * 0.02);
+                ringMat = new THREE.MeshBasicMaterial({
+                    color: 0x00ffff,
+                    transparent: true,
+                    opacity: ringBaseOp,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
                 });
                 const ring = new THREE.Mesh(ringGeom, ringMat);
                 ring.rotation.x = Math.PI / 2;
@@ -1329,30 +1749,67 @@
 
             const worldPos = gridToWorld(gx, gz);
             group.position.set(worldPos.x, 0, worldPos.z);
-            group.userData = { gridX: gx, gridZ: gz, index: index };
+            group.userData = {
+                gridX: gx,
+                gridZ: gz,
+                index: index,
+                tintMats: tintMats,
+                headHalo: headHalo,
+                ringMat: ringMat,
+                ringBaseOp: ringBaseOp,
+                tinted: false
+            };
 
             scene.add(group);
             return group;
         }
 
+        // Programa la expiración del nanobot actual
+        function scheduleNanobotExpiry(ms) {
+            if (nanobotTimer) clearTimeout(nanobotTimer);
+            nanobotTimer = setTimeout(() => {
+                if (nanobot && gameRunning && !gamePaused) {
+                    createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z,
+                                    nanobotColor.getHex(), { count: 16 });
+                    createNanobot();
+                }
+            }, ms);
+        }
+
         function createNanobot() {
-            if (nanobot) scene.remove(nanobot);
+            if (nanobot) {
+                scene.remove(nanobot);
+                disposeObject(nanobot);
+            }
+
+            // Cada nanobot elige un color neón distinto: al tragarlo, la serpiente hereda ese color
+            nanobotColor = new THREE.Color(
+                NANO_PALETTE[Math.floor(Math.random() * NANO_PALETTE.length)]
+            );
 
             const group = new THREE.Group();
 
             const coreGeom = new THREE.IcosahedronGeometry(0.3, 1);
             const coreMat = new THREE.MeshStandardMaterial({
-                color: 0xff00ff, metalness: 0.9, roughness: 0.1,
-                emissive: 0xff00ff, emissiveIntensity: 0.8
+                color: nanobotColor.getHex(), metalness: 0.9, roughness: 0.1,
+                emissive: nanobotColor.getHex(), emissiveIntensity: 0.85
             });
             const core = new THREE.Mesh(coreGeom, coreMat);
             group.add(core);
 
+            const ringColors = [
+                nanobotColor.clone().offsetHSL(0.10, 0, 0.08),
+                nanobotColor.clone().offsetHSL(-0.10, 0, 0.08),
+                new THREE.Color(0xffffff)
+            ];
             for (let i = 0; i < 3; i++) {
                 const ringGeom = new THREE.TorusGeometry(0.45 + i * 0.1, 0.02, 8, 32);
                 const ringMat = new THREE.MeshBasicMaterial({
-                    color: [0xff00ff, 0x00ffff, 0xffff00][i],
-                    transparent: true, opacity: 0.8
+                    color: ringColors[i].getHex(),
+                    transparent: true,
+                    opacity: 0.8,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
                 });
                 const ring = new THREE.Mesh(ringGeom, ringMat);
                 ring.rotation.x = Math.PI / 2 + i * 0.4;
@@ -1361,12 +1818,30 @@
                 group.add(ring);
             }
 
+            // Halo brillante alrededor del nanobot
+            const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+                map: glowTex,
+                color: nanobotColor.getHex(),
+                transparent: true,
+                opacity: 0.55,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            }));
+            halo.scale.set(2.2, 2.2, 1);
+            halo.userData.isNanoHalo = true;
+            group.add(halo);
+
+            // Luz puntual del color del nanobot que tiñe el entorno cercano
+            const nanoLight = new THREE.PointLight(nanobotColor.getHex(), 1.3, 6, 2);
+            nanoLight.position.y = 0.3;
+            group.add(nanoLight);
+
             let gx, gz, valid, attempts = 0;
             do {
                 gx = Math.floor(Math.random() * gridWidth);
                 gz = Math.floor(Math.random() * gridHeight);
                 valid = true;
-                
+
                 for (const seg of snake) {
                     if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
                         valid = false;
@@ -1384,19 +1859,43 @@
 
             const worldPos = gridToWorld(gx, gz);
             group.position.set(worldPos.x, 0.5, worldPos.z);
-            group.userData = { gridX: gx, gridZ: gz };
+            group.userData = {
+                gridX: gx,
+                gridZ: gz,
+                core: coreMat,
+                halo: halo,
+                light: nanoLight
+            };
 
             scene.add(group);
             nanobot = group;
 
+            // Charco de luz bajo el nanobot
+            if (nanoPool) {
+                nanoPool.material.color.copy(nanobotColor);
+                nanoPool.visible = true;
+            }
+
             nanobotStartTime = Date.now();
-            if (nanobotTimer) clearTimeout(nanobotTimer);
-            nanobotTimer = setTimeout(() => {
-                if (nanobot && gameRunning && !gamePaused) {
-                    createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z, 0xff00ff);
-                    createNanobot();
-                }
-            }, CONFIG.NANOBOT_LIFETIME);
+            scheduleNanobotExpiry(CONFIG.NANOBOT_LIFETIME);
+        }
+
+        // Charco de luz roja bajo los obstáculos
+        function addObstacleGlow(group) {
+            const pool = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.8, 1.8),
+                new THREE.MeshBasicMaterial({
+                    map: glowTex,
+                    color: 0xff2200,
+                    transparent: true,
+                    opacity: 0.30,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                })
+            );
+            pool.rotation.x = -Math.PI / 2;
+            pool.position.y = 0.015;
+            group.add(pool);
         }
 
         function createObstacle() {
@@ -1405,10 +1904,10 @@
             const height = 1 + Math.random() * 1.5;
             const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
             obstacleGeom.scale(1, height, 1);
-            
+
             const obstacleMat = new THREE.MeshStandardMaterial({
                 color: 0xff3300, metalness: 0.8, roughness: 0.2,
-                emissive: 0xff2200, emissiveIntensity: 0.4
+                emissive: 0xff2200, emissiveIntensity: 0.55
             });
             const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
             obstacle.position.y = height * 0.35;
@@ -1416,25 +1915,28 @@
 
             const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
             const ringMat = new THREE.MeshBasicMaterial({
-                color: 0xff0000, transparent: true, opacity: 0.6
+                color: 0xff0000, transparent: true, opacity: 0.6,
+                blending: THREE.AdditiveBlending, depthWrite: false
             });
             const ring = new THREE.Mesh(ringGeom, ringMat);
             ring.rotation.x = Math.PI / 2;
             ring.position.y = 0.05;
             group.add(ring);
 
+            addObstacleGlow(group);
+
             let gx, gz, valid, attempts = 0;
             do {
                 gx = Math.floor(Math.random() * gridWidth);
                 gz = Math.floor(Math.random() * gridHeight);
                 valid = true;
-                
+
                 if (snake.length > 0) {
                     const head = snake[0];
                     const dist = Math.abs(head.userData.gridX - gx) + Math.abs(head.userData.gridZ - gz);
                     if (dist < 5) valid = false;
                 }
-                
+
                 for (const seg of snake) {
                     if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
                         valid = false;
@@ -1453,11 +1955,15 @@
                 attempts++;
             } while (!valid && attempts < 100);
 
-            if (attempts >= 100) return;
+            if (attempts >= 100) {
+                disposeObject(group);
+                return;
+            }
 
             const worldPos = gridToWorld(gx, gz);
             group.position.set(worldPos.x, 0, worldPos.z);
-            group.userData = { gridX: gx, gridZ: gz };
+            group.userData.gridX = gx;
+            group.userData.gridZ = gz;
 
             scene.add(group);
             obstacles.push(group);
@@ -1465,16 +1971,16 @@
 
         function createObstacleInBottomZone(oldHeight, deltaHeight) {
             if (deltaHeight <= 0) return;
-            
+
             const group = new THREE.Group();
 
             const height = 1 + Math.random() * 1.5;
             const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
             obstacleGeom.scale(1, height, 1);
-            
+
             const obstacleMat = new THREE.MeshStandardMaterial({
                 color: 0xff3300, metalness: 0.8, roughness: 0.2,
-                emissive: 0xff2200, emissiveIntensity: 0.4
+                emissive: 0xff2200, emissiveIntensity: 0.55
             });
             const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
             obstacle.position.y = height * 0.35;
@@ -1482,19 +1988,22 @@
 
             const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
             const ringMat = new THREE.MeshBasicMaterial({
-                color: 0xff0000, transparent: true, opacity: 0.6
+                color: 0xff0000, transparent: true, opacity: 0.6,
+                blending: THREE.AdditiveBlending, depthWrite: false
             });
             const ring = new THREE.Mesh(ringGeom, ringMat);
             ring.rotation.x = Math.PI / 2;
             ring.position.y = 0.05;
             group.add(ring);
 
+            addObstacleGlow(group);
+
             let gx, gz, valid, attempts = 0;
             do {
                 gx = Math.floor(Math.random() * gridWidth);
                 gz = oldHeight + Math.floor(Math.random() * deltaHeight);
                 valid = true;
-                
+
                 for (const seg of snake) {
                     if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
                         valid = false;
@@ -1510,11 +2019,15 @@
                 attempts++;
             } while (!valid && attempts < 100);
 
-            if (attempts >= 100) return;
+            if (attempts >= 100) {
+                disposeObject(group);
+                return;
+            }
 
             const worldPos = gridToWorld(gx, gz);
             group.position.set(worldPos.x, 0, worldPos.z);
-            group.userData = { gridX: gx, gridZ: gz };
+            group.userData.gridX = gx;
+            group.userData.gridZ = gz;
 
             scene.add(group);
             obstacles.push(group);
@@ -1526,10 +2039,10 @@
             const height = 1 + Math.random() * 1.5;
             const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
             obstacleGeom.scale(1, height, 1);
-            
+
             const obstacleMat = new THREE.MeshStandardMaterial({
                 color: 0xff3300, metalness: 0.8, roughness: 0.2,
-                emissive: 0xff2200, emissiveIntensity: 0.4
+                emissive: 0xff2200, emissiveIntensity: 0.55
             });
             const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
             obstacle.position.y = height * 0.35;
@@ -1537,34 +2050,46 @@
 
             const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
             const ringMat = new THREE.MeshBasicMaterial({
-                color: 0xff0000, transparent: true, opacity: 0.6
+                color: 0xff0000, transparent: true, opacity: 0.6,
+                blending: THREE.AdditiveBlending, depthWrite: false
             });
             const ring = new THREE.Mesh(ringGeom, ringMat);
             ring.rotation.x = Math.PI / 2;
             ring.position.y = 0.05;
             group.add(ring);
 
+            addObstacleGlow(group);
+
             const worldPos = gridToWorld(gx, gz);
             group.position.set(worldPos.x, 0, worldPos.z);
-            group.userData = { gridX: gx, gridZ: gz };
+            group.userData.gridX = gx;
+            group.userData.gridZ = gz;
 
             scene.add(group);
             return group;
         }
 
-        function createExplosion(x, y, z, color) {
-            for (let i = 0; i < 25; i++) {
-                const geom = new THREE.SphereGeometry(0.08, 6, 6);
-                const mat = new THREE.MeshBasicMaterial({
-                    color: new THREE.Color(color), transparent: true, opacity: 1
+        // Explosión de chispas brillantes (spheres => sprites aditivos con textura de brillo)
+        function createExplosion(x, y, z, color, opts = {}) {
+            const count = opts.count || 28;
+            for (let i = 0; i < count; i++) {
+                const mat = new THREE.SpriteMaterial({
+                    map: glowTex,
+                    color: Math.random() < 0.3 ? 0xffffff : new THREE.Color(color).getHex(),
+                    transparent: true,
+                    opacity: 1,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
                 });
-                const particle = new THREE.Mesh(geom, mat);
+                const particle = new THREE.Sprite(mat);
+                const sc = 0.22 + Math.random() * 0.35;
+                particle.scale.set(sc, sc, 1);
                 particle.position.set(x, y, z);
-                
+
                 const speed = 0.15 + Math.random() * 0.2;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.random() * Math.PI;
-                
+
                 particle.userData = {
                     velocity: new THREE.Vector3(
                         Math.sin(phi) * Math.cos(theta) * speed,
@@ -1572,24 +2097,118 @@
                         Math.sin(phi) * Math.sin(theta) * speed
                     ),
                     life: 1,
-                    decay: 0.02 + Math.random() * 0.01
+                    decay: 0.02 + Math.random() * 0.01,
+                    gravity: 0.005,
+                    baseScale: sc
                 };
-                
+
                 scene.add(particle);
                 particles.push(particle);
             }
         }
 
+        // Onda expansiva sobre el suelo
+        function createShockwave(x, z, color, opts = {}) {
+            const geo = new THREE.RingGeometry(0.32, 0.45, 48);
+            const mat = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                side: THREE.DoubleSide
+            });
+            const m = new THREE.Mesh(geo, mat);
+            m.rotation.x = -Math.PI / 2;
+            m.position.set(x, 0.05, z);
+            m.userData = {
+                life: 1,
+                speed: opts.speed || 15,
+                decay: opts.decay || 1.9
+            };
+            scene.add(m);
+            shockwaves.push(m);
+        }
+
+        // Columna de luz en el punto de absorción
+        function createEatPillar(x, z, color) {
+            const geo = new THREE.CylinderGeometry(0.24, 0.36, 2.6, 12, 1, true);
+            const mat = new THREE.MeshBasicMaterial({
+                map: beamTex,
+                color: color,
+                transparent: true,
+                opacity: 0.55,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                side: THREE.DoubleSide
+            });
+            const m = new THREE.Mesh(geo, mat);
+            m.position.set(x, 1.3, z);
+            m.userData = { life: 1, decay: 2.6, isPillar: true };
+            scene.add(m);
+            shockwaves.push(m);
+        }
+
+        // El nanobot vuela hacia la cabeza encogiéndose (efecto de tragar)
+        function startAbsorb(nanoObj, targetWorld) {
+            absorbAnims.push({
+                obj: nanoObj,
+                start: nanoObj.position.clone(),
+                target: new THREE.Vector3(targetWorld.x, 0.35, targetWorld.z),
+                t: 0,
+                dur: 0.22,
+                color: nanobotColor.getHex()
+            });
+        }
+
+        // Onda de color que recorre la serpiente tras comer + destellos varios
+        function applyEatColor(hexColor) {
+            eatWave = {
+                color: new THREE.Color(hexColor),
+                t0: Date.now() * 0.001,
+                perSeg: 0.045
+            };
+            headFlashColor.setHex(hexColor);
+            headFlash = 1;
+            fovKick = 1;
+            flashScreen(hexColor);
+        }
+
+        // Flash de pantalla sutil del color devorado
+        function flashScreen(hex) {
+            if (!flashEl) return;
+            const css = '#' + hex.toString(16).padStart(6, '0');
+            flashEl.style.transition = 'none';
+            flashEl.style.background = 'radial-gradient(circle at 50% 55%, ' + css + ' 0%, rgba(0,0,0,0) 62%)';
+            flashEl.style.opacity = '0.20';
+            void flashEl.offsetWidth;
+            flashEl.style.transition = 'opacity 0.5s ease-out';
+            flashEl.style.opacity = '0';
+        }
+
         function initGame() {
-            snake.forEach(s => scene.remove(s));
+            snake.forEach(s => { scene.remove(s); disposeObject(s); });
             snake = [];
-            obstacles.forEach(o => scene.remove(o));
+            obstacles.forEach(o => { scene.remove(o); disposeObject(o); });
             obstacles = [];
-            particles.forEach(p => scene.remove(p));
+            particles.forEach(p => { scene.remove(p); if (p.material) p.material.dispose(); });
             particles = [];
-            if (nanobot) scene.remove(nanobot);
+            absorbAnims.forEach(a => { scene.remove(a.obj); disposeObject(a.obj); });
+            absorbAnims = [];
+            shockwaves.forEach(w => { scene.remove(w); disposeObject(w); });
+            shockwaves = [];
+            if (nanobot) { scene.remove(nanobot); disposeObject(nanobot); }
             nanobot = null;
             if (nanobotTimer) clearTimeout(nanobotTimer);
+
+            // Reiniciar estado de efectos
+            eatWave = null;
+            headFlash = 0;
+            fovKick = 0;
+            shakeTime = 0;
+            if (snakeGlowPts) snakeGlowPts.geometry.setDrawRange(0, 0);
+            if (headPool) headPool.visible = false;
+            if (nanoPool) nanoPool.visible = false;
 
             score = 0;
             level = 1;
@@ -1615,14 +2234,14 @@
             createNanobot();
             gameRunning = true;
             lastMoveTime = Date.now();
-            
+
             hideAllMenus();
             showGameUI();
         }
 
         function updateSnake() {
             if (gamePaused) return;
-            
+
             const now = Date.now();
             if (now - lastMoveTime < currentSpeed) return;
             lastMoveTime = now;
@@ -1656,9 +2275,16 @@
             if (nanobot && nanobot.userData.gridX === newX && nanobot.userData.gridZ === newZ) {
                 grow = true;
                 score++;
-                
-                createExplosion(nanobot.position.x, nanobot.position.y, nanobot.position.z, 0xff00ff);
-                scene.remove(nanobot);
+
+                const eatHex = nanobotColor.getHex();
+                const headWorld = gridToWorld(newX, newZ);
+
+                // El elemento cambia de color y vuela hacia la boca de la serpiente
+                startAbsorb(nanobot, headWorld);
+                createShockwave(headWorld.x, headWorld.z, eatHex);
+                createEatPillar(headWorld.x, headWorld.z, eatHex);
+                applyEatColor(eatHex);
+
                 nanobot = null;
                 clearTimeout(nanobotTimer);
 
@@ -1676,7 +2302,7 @@
                 positions.push({ x: seg.userData.gridX, z: seg.userData.gridZ });
             });
 
-            snake.forEach(seg => scene.remove(seg));
+            snake.forEach(seg => { scene.remove(seg); disposeObject(seg); });
             snake = [];
 
             const newLength = grow ? positions.length : positions.length - 1;
@@ -1694,34 +2320,37 @@
 
         function levelUp() {
             level++;
-            
+
             const levelUpEl = document.getElementById('levelUp');
             levelUpEl.textContent = `¡NIVEL ${level}!`;
             levelUpEl.classList.add('active');
             setTimeout(() => levelUpEl.classList.remove('active'), 1500);
 
+            createShockwave(0, 0, 0x66ffff, { speed: 30, decay: 1.1 });
+            createExplosion(0, 0.6, 0, 0x00ffff, { count: 22 });
+
             const snakeGridPositions = snake.map(seg => ({
                 gx: seg.userData.gridX,
                 gz: seg.userData.gridZ
             }));
-            
+
             const oldGridWidth = gridWidth;
             const oldGridHeight = gridHeight;
 
             calculateGridSize();
-            
+
             const deltaWidth = gridWidth - oldGridWidth;
             const deltaHeight = gridHeight - oldGridHeight;
-            
+
             const offsetX = Math.floor(deltaWidth / 2);
             const offsetZ = 0;
-            
+
             createGrid();
             updateCamera();
 
-            snake.forEach(seg => scene.remove(seg));
+            snake.forEach(seg => { scene.remove(seg); disposeObject(seg); });
             snake = [];
-            
+
             snakeGridPositions.forEach((pos, i) => {
                 const newX = pos.gx + offsetX;
                 const newZ = pos.gz;
@@ -1737,14 +2366,14 @@
                 gx: obs.userData.gridX,
                 gz: obs.userData.gridZ
             }));
-            
-            obstacles.forEach(obs => scene.remove(obs));
+
+            obstacles.forEach(obs => { scene.remove(obs); disposeObject(obs); });
             obstacles = [];
-            
+
             obstacleGridPositions.forEach(pos => {
                 const newGx = pos.gx + offsetX;
                 const newGz = pos.gz;
-                
+
                 const group = createObstacleAt(newGx, newGz);
                 if (group) obstacles.push(group);
             });
@@ -1759,25 +2388,37 @@
 
         function gameOver() {
             gameRunning = false;
-            
+
+            // Sacudida de cámara + onda expansiva de impacto
+            shakeTime = 0.7;
+            shakeMag = 1.1;
+            if (snake.length > 0) {
+                createShockwave(snake[0].position.x, snake[0].position.z, 0xffffff, { speed: 20, decay: 1.4 });
+            }
+
             snake.forEach(seg => {
-                createExplosion(seg.position.x, seg.position.y + 0.3, seg.position.z, 0x00ffff);
+                createExplosion(seg.position.x, seg.position.y + 0.3, seg.position.z,
+                                Math.random() < 0.5 ? 0x00ffff : 0xffffff, { count: 14 });
             });
 
             const isNewRecord = saveRecord(score);
-            
+
             document.getElementById('finalScore').textContent = score;
             document.getElementById('newRecordText').classList.toggle('hidden', !isNewRecord);
-            
+
             setTimeout(() => {
                 hideGameUI();
                 showMenu('gameOverScreen');
             }, 500);
+
+            if (headPool) headPool.visible = false;
+            if (nanoPool) nanoPool.visible = false;
         }
 
         function pauseGame() {
             if (!gameRunning) return;
             gamePaused = true;
+            pauseStartTime = Date.now();
             document.getElementById('pauseSpeedSlider').value = currentSpeedLevel;
             updateSpeedDisplay(currentSpeedLevel, 'pauseSpeedValueDisplay');
             showMenu('pauseMenu');
@@ -1786,6 +2427,17 @@
         function resumeGame() {
             gamePaused = false;
             hideAllMenus();
+            // Compensar el tiempo de pausa en la cuenta atrás del nanobot
+            if (nanobot) {
+                const pausedMs = Date.now() - pauseStartTime;
+                nanobotStartTime += pausedMs;
+                const elapsed = Date.now() - nanobotStartTime;
+                if (elapsed >= CONFIG.NANOBOT_LIFETIME) {
+                    createNanobot();
+                } else {
+                    scheduleNanobotExpiry(CONFIG.NANOBOT_LIFETIME - elapsed);
+                }
+            }
             lastMoveTime = Date.now();
         }
 
@@ -1797,18 +2449,139 @@
 
         function updateTimerDisplay() {
             if (!nanobot || !gameRunning || gamePaused) return;
-            
+
             const elapsed = Date.now() - nanobotStartTime;
             const remaining = Math.max(0, CONFIG.NANOBOT_LIFETIME - elapsed);
             const percent = (remaining / CONFIG.NANOBOT_LIFETIME) * 100;
-            
+
             document.getElementById('timerFill').style.width = percent + '%';
+        }
+
+        // ===== SISTEMA DE COLOR DE LA SERPIENTE =====
+        // Aplica la onda de color del nanobot devorado recorriendo la serpiente
+        // de la cabeza a la cola. El segmento nuevo conserva un tinte residual.
+        function updateSnakeColors(time, dt) {
+            if (headFlash > 0.002) {
+                headFlash *= Math.exp(-dt * 4.2);
+            } else {
+                headFlash = 0;
+            }
+
+            const waveActive = eatWave !== null;
+            const waveT = waveActive ? time - eatWave.t0 : 0;
+            let allDone = waveActive;
+
+            const glowCount = Math.min(snake.length, SNAKE_GLOW_MAX);
+
+            for (let i = 0; i < snake.length; i++) {
+                const seg = snake[i];
+                const mats = seg.userData.tintMats;
+                let tintColor = null;
+                let amt = 0;
+
+                if (waveActive) {
+                    const local = waveT - i * eatWave.perSeg;
+                    if (local > 0) {
+                        // Pulso brillante que viaja por el cuerpo
+                        const pulse = Math.exp(-Math.pow((local - 0.16) / 0.20, 2));
+                        let residual = 0;
+                        // El último segmento (el recién crecido) conserva el color unos segundos
+                        if (i === snake.length - 1) {
+                            const ramp = Math.min(1, local / 0.6);
+                            const decay = Math.exp(-Math.max(0, local - 5.5) * 0.45);
+                            residual = 0.55 * ramp * decay;
+                        }
+                        amt = Math.min(1, pulse * 1.25 + residual);
+                        tintColor = eatWave.color;
+                        if (i === snake.length - 1 || local < 7) allDone = false;
+                    } else {
+                        allDone = false;
+                    }
+                }
+
+                // El destello de la cabeza domina sobre la onda
+                if (i === 0 && headFlash > 0.004) {
+                    if (!tintColor || headFlash * 1.6 > amt) {
+                        tintColor = headFlashColor;
+                        amt = Math.max(amt, Math.min(1, headFlash * 1.6));
+                    }
+                }
+
+                if (mats && mats.length > 0) {
+                    if (tintColor && amt > 0.004) {
+                        for (const e of mats) {
+                            e.mat.color.copy(e.base).lerp(tintColor, amt);
+                            e.mat.emissive.copy(e.eBase).lerp(WHITE, Math.min(1, amt * 1.15));
+                            e.mat.emissiveIntensity = e.ei + amt * 1.5;
+                        }
+                        if (seg.userData.ringMat) {
+                            seg.userData.ringMat.color.setHex(0x00ffff).lerp(tintColor, amt);
+                            seg.userData.ringMat.opacity = Math.min(1, seg.userData.ringBaseOp + amt * 0.6);
+                        }
+                        seg.userData.tinted = true;
+                    } else if (seg.userData.tinted) {
+                        for (const e of mats) {
+                            e.mat.color.copy(e.base);
+                            e.mat.emissive.copy(e.eBase);
+                            e.mat.emissiveIntensity = e.ei;
+                        }
+                        if (seg.userData.ringMat) {
+                            seg.userData.ringMat.color.setHex(0x00ffff);
+                            seg.userData.ringMat.opacity = seg.userData.ringBaseOp;
+                        }
+                        seg.userData.tinted = false;
+                    }
+                }
+
+                // Color mostrado (para el brillo del suelo)
+                if (i < SNAKE_GLOW_MAX && mats && mats.length > 0) {
+                    tmpColor.copy(mats[0].base);
+                    if (tintColor && amt > 0.004) tmpColor.lerp(tintColor, amt);
+                    snakeGlowPos[i * 3] = seg.position.x;
+                    snakeGlowPos[i * 3 + 1] = 0.06;
+                    snakeGlowPos[i * 3 + 2] = seg.position.z;
+                    snakeGlowCol[i * 3] = tmpColor.r;
+                    snakeGlowCol[i * 3 + 1] = tmpColor.g;
+                    snakeGlowCol[i * 3 + 2] = tmpColor.b;
+                }
+            }
+
+            if (waveActive && allDone) eatWave = null;
+
+            if (snakeGlowPts) {
+                snakeGlowPts.geometry.setDrawRange(0, glowCount);
+                snakeGlowPts.geometry.attributes.position.needsUpdate = true;
+                snakeGlowPts.geometry.attributes.color.needsUpdate = true;
+            }
+
+            // Halo y charco de luz de la cabeza
+            if (snake.length > 0 && gameRunning) {
+                const head = snake[0];
+                const halo = head.userData.headHalo;
+                if (halo) {
+                    const hf = Math.min(1, headFlash * 2);
+                    halo.material.color.setHex(0x66ffee).lerp(headFlashColor, hf);
+                    halo.material.opacity = 0.30 + headFlash * 0.5;
+                    const hs = 1.35 + headFlash * 1.1;
+                    halo.scale.set(hs, hs, 1);
+                }
+                if (headPool) {
+                    headPool.visible = true;
+                    headPool.position.set(head.position.x, 0.02, head.position.z);
+                    headPool.material.color.setHex(0x00ffcc).lerp(headFlashColor, Math.min(1, headFlash * 2));
+                    headPool.material.opacity = 0.20 + headFlash * 0.35;
+                }
+            } else if (headPool) {
+                headPool.visible = false;
+            }
         }
 
         function animate() {
             requestAnimationFrame(animate);
 
             const time = Date.now() * 0.001;
+            const dt = Math.min(0.05, time - (lastFrameTime || time));
+            lastFrameTime = time;
 
             if (gameRunning && !gamePaused) {
                 updateSnake();
@@ -1821,7 +2594,10 @@
                     child.material.uniforms.time.value = time;
                 }
                 if (child.userData.isStarLayer) {
-                    child.rotation.y += child.userData.rotSpeed;
+                    child.rotation.y += child.userData.rotSpeed * (dt * 60);
+                }
+                if (child.userData.isBackdrop && child.material.uniforms) {
+                    child.material.uniforms.time.value = time;
                 }
             });
 
@@ -1829,7 +2605,7 @@
             nebulaParticles.forEach((orb, i) => {
                 const data = orb.userData;
                 if (data.isOrb) {
-                    data.angle += data.speed;
+                    data.angle += data.speed * (dt * 60);
                     orb.position.x = Math.cos(data.angle) * data.radius;
                     orb.position.z = Math.sin(data.angle) * data.radius;
                     orb.position.y = data.baseY + Math.sin(time * data.ySpeed * 50 + i) * 1.5;
@@ -1837,20 +2613,49 @@
                 }
             });
 
+            // Animate floating data shards (parallax)
+            for (const s of shards) {
+                s.rotation.x += s.userData.rot.x * (dt * 60);
+                s.rotation.y += s.userData.rot.y * (dt * 60);
+                s.rotation.z += s.userData.rot.z * (dt * 60);
+                s.position.y = s.userData.baseY + Math.sin(time * s.userData.bobSpeed + s.userData.bobPhase) * 0.8;
+            }
+
             // Animate nanobot
             if (nanobot) {
-                nanobot.rotation.y += 0.03;
+                nanobot.rotation.y += 0.03 * (dt * 60);
                 nanobot.position.y = 0.5 + Math.sin(time * 4) * 0.15;
                 nanobot.children.forEach(child => {
                     if (child.userData.rotSpeed) {
-                        child.rotation.z += child.userData.rotSpeed;
+                        child.rotation.z += child.userData.rotSpeed * (dt * 60);
                     }
                 });
+
+                // Parpadeo de urgencia según el tiempo restante (avisa de que va a expirar)
+                const elapsed = Date.now() - nanobotStartTime;
+                const frac = Math.max(0, 1 - elapsed / CONFIG.NANOBOT_LIFETIME);
+                const speedup = 6 + (1 - frac) * 26;
+                const blink = 0.72 + 0.28 * Math.sin(time * speedup);
+                const data = nanobot.userData;
+                if (data.core) data.core.emissiveIntensity = 0.65 + 0.55 * blink;
+                if (data.halo) {
+                    data.halo.material.opacity = 0.30 + 0.35 * blink;
+                    const hs = 2.0 + (1 - frac) * 0.5 + 0.25 * blink;
+                    data.halo.scale.set(hs, hs, 1);
+                }
+                if (data.light) data.light.intensity = 0.9 + 0.9 * blink;
+
+                if (nanoPool) {
+                    nanoPool.position.set(nanobot.position.x, 0.02, nanobot.position.z);
+                    nanoPool.material.opacity = 0.16 + 0.22 * blink;
+                }
+            } else if (nanoPool) {
+                nanoPool.visible = false;
             }
 
             // Animate obstacles
             obstacles.forEach((obs, i) => {
-                if (obs.children[0]) obs.children[0].rotation.y += 0.01;
+                if (obs.children[0]) obs.children[0].rotation.y += 0.01 * (dt * 60);
                 if (obs.children[1]) {
                     const pulse = 1 + Math.sin(time * 3 + i) * 0.1;
                     obs.children[1].scale.setScalar(pulse);
@@ -1866,7 +2671,7 @@
                             child.position.z = 0.45 + Math.sin(time * 12) * 0.15;
                             child.rotation.y = Math.sin(time * 8) * 0.1;
                         }
-                        
+
                         if (child.userData && child.userData.isHypnoticEye) {
                             child.children.forEach(eyePart => {
                                 if (eyePart.userData && eyePart.userData.isSpiral) {
@@ -1877,7 +2682,7 @@
                                 }
                             });
                         }
-                        
+
                         if (child.userData && child.userData.isAntennaTip) {
                             child.material.opacity = 0.5 + Math.sin(time * 6) * 0.4;
                             const glowScale = 1 + Math.sin(time * 8) * 0.3;
@@ -1893,6 +2698,47 @@
                 });
             }
 
+            // Onda de color de la serpiente + brillos del suelo
+            updateSnakeColors(time, dt);
+
+            // Animaciones de absorción (el nanobot vuela hacia la cabeza)
+            for (let i = absorbAnims.length - 1; i >= 0; i--) {
+                const a = absorbAnims[i];
+                a.t += dt / a.dur;
+                const k = Math.min(1, a.t);
+                const ease = k * k * (3 - 2 * k);
+                a.obj.position.lerpVectors(a.start, a.target, ease);
+                const sc = Math.max(0.02, 1 - ease * 0.96);
+                a.obj.scale.setScalar(sc);
+                a.obj.rotation.y += 0.35 * (dt * 60);
+                if (k >= 1) {
+                    createExplosion(a.target.x, a.target.y, a.target.z, a.color, { count: 30 });
+                    scene.remove(a.obj);
+                    disposeObject(a.obj);
+                    absorbAnims.splice(i, 1);
+                }
+            }
+
+            // Ondas expansivas y pilares de luz
+            for (let i = shockwaves.length - 1; i >= 0; i--) {
+                const w = shockwaves[i];
+                if (w.userData.isPillar) {
+                    w.userData.life -= dt * w.userData.decay;
+                    w.material.opacity = Math.max(0, w.userData.life) * 0.55;
+                    w.scale.x = w.scale.z = 1 + (1 - w.userData.life) * 1.6;
+                } else {
+                    const s = w.scale.x + w.userData.speed * dt;
+                    w.scale.set(s, s, s);
+                    w.userData.life -= dt * w.userData.decay;
+                    w.material.opacity = Math.max(0, w.userData.life) * 0.9;
+                }
+                if (w.userData.life <= 0) {
+                    scene.remove(w);
+                    disposeObject(w);
+                    shockwaves.splice(i, 1);
+                }
+            }
+
             // Animate floor
             if (gridFloor) {
                 gridFloor.children.forEach(child => {
@@ -1906,39 +2752,95 @@
                         child.rotation.z = Math.PI / 4 + time * 0.5 + child.userData.cornerIndex * 0.5;
                         child.scale.setScalar(1 + Math.sin(time * 2 + child.userData.cornerIndex) * 0.2);
                     }
+                    if (child.userData.cornerBeam !== undefined) {
+                        child.material.opacity = 0.20 + 0.14 * Math.sin(time * 2.2 + child.userData.cornerBeam * 1.7);
+                    }
                 });
             }
 
             // Update particles
+            const frameScale = dt * 60;
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
-                p.position.add(p.userData.velocity);
-                p.userData.velocity.y -= 0.005;
-                p.userData.life -= p.userData.decay;
-                p.material.opacity = p.userData.life;
+                p.position.addScaledVector(p.userData.velocity, frameScale);
+                p.userData.velocity.y -= (p.userData.gravity !== undefined ? p.userData.gravity : 0.005) * frameScale;
+                p.userData.life -= p.userData.decay * frameScale;
+                p.material.opacity = Math.max(0, p.userData.life);
+                const sc = p.userData.baseScale * (0.5 + 0.5 * Math.max(0, p.userData.life));
+                p.scale.set(sc, sc, 1);
 
                 if (p.userData.life <= 0) {
                     scene.remove(p);
+                    if (p.material) p.material.dispose();
                     particles.splice(i, 1);
                 }
             }
 
-            renderer.render(scene, camera);
+            // ===== Movimiento cinemático de cámara =====
+            const swayAmp = (gameRunning && !gamePaused) ? 0.45 : 0.9;
+            let shX = 0, shY = 0;
+            if (shakeTime > 0) {
+                const s = shakeTime * shakeMag;
+                shX = (Math.random() - 0.5) * s;
+                shY = (Math.random() - 0.5) * s;
+                shakeTime -= dt;
+            }
+            camera.position.set(
+                camBase.x + Math.sin(time * 0.5) * swayAmp + shX,
+                camBase.y + Math.sin(time * 0.37 + 1.3) * swayAmp * 0.55 + shY,
+                camBase.z + Math.cos(time * 0.43) * swayAmp * 0.4
+            );
+            camera.lookAt(camLook.x, camLook.y, camLook.z);
+
+            if (fovKick > 0.001) {
+                camera.fov = camBase.fov + fovKick * 5.5;
+                camera.updateProjectionMatrix();
+                fovKick = Math.max(0, fovKick - dt * 3.0);
+            } else if (Math.abs(camera.fov - camBase.fov) > 0.001) {
+                camera.fov = camBase.fov;
+                camera.updateProjectionMatrix();
+            }
+
+            // Reducción automática de calidad si el dispositivo va justo
+            if (!perfChecked && gameRunning && dt > 0) {
+                perfAccum += dt;
+                perfSamples++;
+                if (perfSamples >= 200) {
+                    perfChecked = true;
+                    if (perfAccum / perfSamples > 0.028 && useBloom) {
+                        useBloom = false;
+                        console.info('[CyberSnake] Bloom desactivado automáticamente para mantener el rendimiento.');
+                    }
+                }
+            }
+
+            if (useBloom && composer) {
+                composer.render();
+            } else {
+                renderer.render(scene, camera);
+            }
         }
 
         function onWindowResize() {
             const aspect = window.innerWidth / window.innerHeight;
             renderer.setSize(window.innerWidth, window.innerHeight);
-            
+            if (composer) composer.setSize(window.innerWidth, window.innerHeight);
+
             if (gridWidth && gridHeight) {
                 updateCamera();
             }
         }
 
         // ===== EVENT LISTENERS =====
-        
+
         // Keyboard
         document.addEventListener('keydown', (e) => {
+            // Tecla B: activar/desactivar el bloom (efectos) manualmente
+            if (e.key.toLowerCase() === 'b') {
+                if (composer) useBloom = !useBloom;
+                return;
+            }
+
             if (!gameRunning || gamePaused) return;
 
             switch (e.key.toLowerCase()) {
@@ -1984,10 +2886,10 @@
 
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
-            
+
             const deltaX = touchEndX - touchStartX;
             const deltaY = touchEndY - touchStartY;
-            
+
             if (Math.abs(deltaX) < touchThreshold && Math.abs(deltaY) < touchThreshold) {
                 return;
             }
@@ -2008,19 +2910,19 @@
         }, { passive: false });
 
         // ===== MENU BUTTONS =====
-        
+
         // Main Menu
         document.getElementById('btnPlay').addEventListener('click', initGame);
-        
+
         document.getElementById('btnSpeed').addEventListener('click', () => {
             showMenu('speedMenu');
         });
-        
+
         document.getElementById('btnRecords').addEventListener('click', () => {
             updateRecordsList();
             showMenu('recordsMenu');
         });
-        
+
         document.getElementById('btnExit').addEventListener('click', () => {
             if (confirm('¿Seguro que quieres salir?')) {
                 window.close();
@@ -2091,12 +2993,12 @@
 
         Object.entries(dpadButtons).forEach(([id, dir]) => {
             const btn = document.getElementById(id);
-            
+
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (!gameRunning || gamePaused) return;
                 btn.classList.add('active');
-                
+
                 if (dir.x !== 0 && direction.x !== -dir.x) {
                     nextDirection = { ...dir };
                 } else if (dir.y !== 0 && direction.y !== -dir.y) {
@@ -2112,7 +3014,7 @@
             btn.addEventListener('mousedown', (e) => {
                 if (!gameRunning || gamePaused) return;
                 btn.classList.add('active');
-                
+
                 if (dir.x !== 0 && direction.x !== -dir.x) {
                     nextDirection = { ...dir };
                 } else if (dir.y !== 0 && direction.y !== -dir.y) {
@@ -2126,7 +3028,7 @@
 
         // Turbo button
         const turboBtn = document.getElementById('turboBtn');
-        
+
         turboBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             turboBtn.classList.add('active');
@@ -2160,6 +3062,7 @@
         });
 
         // ===== INITIALIZATION =====
+        flashEl = document.getElementById('flashOverlay');
         initThree();
         calculateGridSize();
         updateCamera();
