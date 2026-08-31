@@ -1,6 +1,21 @@
 # Cyber-snake
 Videojuego de una serpiente cibernética
 
+## 🌀 Agujero cuántico (nuevo)
+
+Al tragar el nanobot número 10 (el umbral de crecimiento), el orbe **se sustituye por un agujero cuántico** que aparece en el tablero: un vórtice violeta con anillos de acreción y partículas espiralando hacia dentro. Entra en él para **descender al piso inferior**:
+
+- La serpiente es succionada, atraviesa el vórtice y aterriza en el piso de abajo.
+- El mapa se amplía **conservando el mapa actual intacto**: la serpiente, los obstáculos y el tablero existente **no se desplazan ni un solo cuadro** (el mapa crece anclado por su esquina superior izquierda, hacia la derecha y hacia abajo).
+- Los obstáculos nuevos del piso aparecen **sólo en la zona recién añadida**, nunca sobre el mapa actual ni bajo la serpiente (esto corrige el fallo anterior por el que la serpiente se desplazaba y a veces aparecía sobre un obstáculo).
+
+## 👁 Vista en primera persona (nuevo)
+
+Pulsa **V** o el botón **👁** del HUD para alternar entre la vista cenital habitual y una **vista en primera persona desde arriba de la cabeza de la serpiente**, mirando al frente y con giro suave de cámara en cada curva.
+
+- **Sólo en primera persona** aparecen **dos teclas luminosas a los laterales de la cabeza** (◄ cian a la izquierda, ► magenta a la derecha). Latidos con más brillo que el resto de elementos, y **al pulsarlas (clic o toque) la serpiente gira** hacia ese lado. Destellan al accionarlas.
+- Las teclas no se ven ni funcionan en la vista cenital.
+
 ## ✨ Novedades visuales
 
 - **Bloom (post-procesado)** con UnrealBloomPass de Three.js para un auténtico brillo neón. Se desactiva automáticamente si el dispositivo va justo de rendimiento, y puedes alternarlo con la tecla **B**.
@@ -19,6 +34,8 @@ Videojuego de una serpiente cibernética
 - **ESPACIO / TURBO** para velocidad x3
 - **P / ESC** pausa
 - **B** activar/desactivar bloom
+- **V / 👁** alternar vista cenital ↔ primera persona
+- **◄ ►** (teclas laterales de la cabeza, sólo en 1ª persona) girar a izquierda/derecha
 
 ## Ejecutar
 

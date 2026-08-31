@@ -473,6 +473,67 @@
             pointer-events: none;
         }
 
+        /* Botón de cambio de vista (orbital / primera persona) */
+        .view-btn {
+            top: 52px;
+            padding: 6px 12px;
+            font-size: 10px;
+        }
+
+        /* Pista de las teclas de giro en primera persona */
+        .view-hint {
+            position: fixed;
+            bottom: 170px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(0, 255, 255, 0.75);
+            font-size: 10px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+            z-index: 120;
+            text-align: center;
+        }
+
+        /* Aviso de agujero cuántico abierto */
+        .hole-hint {
+            position: fixed;
+            top: 88px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(190, 120, 255, 0.9);
+            font-size: 10px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            pointer-events: none;
+            text-shadow: 0 0 12px rgba(150, 60, 255, 0.8);
+            z-index: 120;
+            text-align: center;
+            animation: holePulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes holePulse {
+            0%, 100% { opacity: 0.65; }
+            50% { opacity: 1; }
+        }
+
+        /* Fundido durante el descenso por el agujero cuántico */
+        #descendOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 94;
+            background: radial-gradient(ellipse at center,
+                rgba(20, 0, 45, 0.85) 0%,
+                rgba(5, 0, 15, 0.97) 55%,
+                #000 100%);
+        }
+
         /* Controles táctiles */
         .touch-controls {
             position: fixed;
@@ -643,6 +704,7 @@
 
     <div class="vignette"></div>
     <div id="flashOverlay"></div>
+    <div id="descendOverlay"></div>
     <div class="scanlines"></div>
 
     <!-- HUD del juego -->
@@ -662,6 +724,7 @@
     </div>
 
     <button class="pause-btn hidden" id="pauseBtn">⏸ PAUSA</button>
+    <button class="pause-btn view-btn hidden" id="viewBtn">👁 1ª PERSONA</button>
 
     <div class="nanobot-timer hidden" id="nanobotTimer">
         <div>NANOBOT</div>
@@ -672,6 +735,8 @@
 
     <div class="level-up" id="levelUp">¡NIVEL COMPLETADO!</div>
     <div class="swipe-hint hidden" id="swipeHint">DESLIZA O USA LAS FLECHAS</div>
+    <div class="view-hint hidden" id="viewHint">PULSA LAS TECLAS ◄ ► JUNTO A LA CABEZA PARA GIRAR</div>
+    <div class="hole-hint hidden" id="holeHint">🌀 AGUJERO CUÁNTICO ABIERTO<br>ENTRA PARA BAJAR DE PISO</div>
 
     <!-- Controles táctiles -->
     <div class="touch-controls" id="touchControls">
@@ -705,7 +770,10 @@
         <div class="controls-info">
             <span>↑ ↓ ← →</span> o <span>W A S D</span> para mover<br>
             <span>DESLIZA</span> o usa el <span>D-PAD</span> táctil<br>
-            <span>🥚 TURBO</span> para velocidad x3
+            <span>🥚 TURBO</span> para velocidad x3<br>
+            <span>V</span> o <span>👁</span> para cambiar a vista en 1ª persona<br>
+            <span>◄ ►</span> teclas laterales de la cabeza para girar (sólo 1ª persona)<br>
+            <span>🌀 AGUJERO CUÁNTICO</span> entra en él para bajar al piso inferior
         </div>
     </div>
 
@@ -812,6 +880,11 @@
         let score = 0;
         let level = 1;
         let gridWidth, gridHeight;
+        // Origen del mapa en coordenadas de mundo (esquina de la celda (0,0)).
+        // Se mantiene FIJO al ampliar el mapa: así las celdas existentes conservan
+        // su índice de rejilla y su posición en el mundo (la serpiente no se mueve).
+        let gridOriginX = 0;
+        let gridOriginZ = 0;
         let gameRunning = false;
         let gamePaused = false;
         let pauseStartTime = 0;
@@ -821,6 +894,26 @@
         let gridFloor = null;
         let nebulaParticles = [];
         let currentSpeedLevel = 3;
+
+        // ===== AGUJERO CUÁNTICO (portal al piso inferior) =====
+        let quantumHole = null;
+        let descending = false;        // true mientras la serpiente desciende de piso
+        let descendT = 0;
+        const DESCEND_DURATION = 1.7;  // segundos que dura la transición
+        let descendExpanded = false;   // ¿ya se amplió el mapa durante el descenso?
+        let descendNanobot = false;    // ¿ya reapareció el nanobot al aterrizar?
+
+        // ===== VISTA / CÁMARA =====
+        // 'orbital' = vista actual cenital | 'fp' = primera persona sobre la cabeza
+        let viewMode = 'orbital';
+        const FP_FOV = 66;
+        const fpCam = {
+            pos: null,   // THREE.Vector3 suavizado
+            yaw: 0,
+            ready: false
+        };
+        let raycaster = null;
+        const pointerNDC = { x: 0, y: 0 };
 
         // ===== ESTADO DE EFECTOS VISUALES =====
         let composer = null;
@@ -848,10 +941,12 @@
         let shakeTime = 0;           // Sacudida de cámara al morir
         let shakeMag = 0.9;
         let flashEl = null;          // Overlay de flash en pantalla
+        let descendEl = null;        // Overlay del descenso de piso (agujero cuántico)
         let lastFrameTime = 0;
         let perfAccum = 0, perfSamples = 0, perfChecked = false;
         const WHITE = new THREE.Color(0xffffff);
         const tmpColor = new THREE.Color();
+        const fpTargetVec = new THREE.Vector3();   // Reutilizable para la cámara 1ª persona
 
         // Touch controls
         let touchStartX = 0;
@@ -936,16 +1031,21 @@
         function showGameUI() {
             document.getElementById('ui').classList.remove('hidden');
             document.getElementById('pauseBtn').classList.remove('hidden');
+            document.getElementById('viewBtn').classList.remove('hidden');
             document.getElementById('nanobotTimer').classList.remove('hidden');
             document.getElementById('swipeHint').classList.remove('hidden');
             document.getElementById('touchControls').classList.add('visible');
+            if (viewMode === 'fp') document.getElementById('viewHint').classList.remove('hidden');
         }
 
         function hideGameUI() {
             document.getElementById('ui').classList.add('hidden');
             document.getElementById('pauseBtn').classList.add('hidden');
+            document.getElementById('viewBtn').classList.add('hidden');
             document.getElementById('nanobotTimer').classList.add('hidden');
             document.getElementById('swipeHint').classList.add('hidden');
+            document.getElementById('viewHint').classList.add('hidden');
+            document.getElementById('holeHint').classList.add('hidden');
             document.getElementById('touchControls').classList.remove('visible');
         }
 
@@ -1032,6 +1132,20 @@
             }
         }
 
+        // Centra el mapa actual en el origen del mundo (sólo al empezar partida)
+        function centerGrid() {
+            gridOriginX = -(gridWidth * CONFIG.CELL_SIZE) / 2;
+            gridOriginZ = -(gridHeight * CONFIG.CELL_SIZE) / 2;
+        }
+
+        // Centro del mapa en coordenadas de mundo
+        function gridCenterWorld() {
+            return {
+                x: gridOriginX + (gridWidth * CONFIG.CELL_SIZE) / 2,
+                z: gridOriginZ + (gridHeight * CONFIG.CELL_SIZE) / 2
+            };
+        }
+
         function isLowEndDevice() {
             const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
             const fewCores = (navigator.hardwareConcurrency || 8) <= 4;
@@ -1067,6 +1181,114 @@
             }
         }
 
+        // ===== VISTA EN PRIMERA PERSONA =====
+        // Alterna entre la vista cenital actual y una vista desde arriba de la
+        // cabeza de la serpiente, mirando al frente.
+        function toggleView() {
+            viewMode = (viewMode === 'fp') ? 'orbital' : 'fp';
+            const btn = document.getElementById('viewBtn');
+            const hint = document.getElementById('viewHint');
+            if (viewMode === 'fp') {
+                btn.textContent = '🛰 CENITAL';
+                if (gameRunning) hint.classList.remove('hidden');
+                fpCam.ready = false;   // recolocar la cámara de un salto
+            } else {
+                btn.textContent = '👁 1ª PERSONA';
+                hint.classList.add('hidden');
+            }
+            updateTurnKeysVisibility();
+            updateCamera();
+        }
+
+        // Las teclas de giro laterales sólo se ven en primera persona
+        function updateTurnKeysVisibility() {
+            const show = (viewMode === 'fp');
+            snake.forEach(seg => {
+                const keys = seg.userData.turnKeys;
+                if (keys) {
+                    keys.left.visible = show;
+                    keys.right.visible = show;
+                }
+            });
+        }
+
+        // Giro relativo de 90º respecto a la dirección actual de la serpiente
+        function turnLeft() {
+            nextDirection = { x: direction.y, y: -direction.x };
+        }
+
+        function turnRight() {
+            nextDirection = { x: -direction.y, y: direction.x };
+        }
+
+        function pressTurnKey(side) {
+            if (viewMode !== 'fp' || !gameRunning || gamePaused || descending) return;
+            if (snake.length === 0) return;
+            if (side === 'left') turnLeft();
+            else turnRight();
+            // Retroalimentación visual: la tecla destella al pulsarla
+            const keys = snake[0].userData.turnKeys;
+            if (keys && keys[side]) keys[side].userData.pulse = 1;
+        }
+
+        function updateFirstPersonCamera(dt, time, shX, shY) {
+            if (!snake || snake.length === 0) return;
+            if (!fpCam.pos) fpCam.pos = new THREE.Vector3();
+            const head = snake[0];
+
+            // Guino suave hacia la orientación de marcha
+            const targetYaw = Math.atan2(direction.x, direction.y);
+            let dYaw = targetYaw - fpCam.yaw;
+            while (dYaw > Math.PI) dYaw -= Math.PI * 2;
+            while (dYaw < -Math.PI) dYaw += Math.PI * 2;
+            fpCam.yaw += dYaw * (1 - Math.exp(-dt * 9));
+
+            const fx = Math.sin(fpCam.yaw);
+            const fz = Math.cos(fpCam.yaw);
+
+            fpTargetVec.set(head.position.x, 0, head.position.z);
+            if (!fpCam.ready || fpCam.pos.distanceTo(fpTargetVec) > 2.5) {
+                // Teletransporte (borde del mapa): recolocar sin volar por encima
+                fpCam.pos.copy(fpTargetVec);
+                fpCam.yaw = targetYaw;
+                fpCam.ready = true;
+            } else {
+                fpCam.pos.lerp(fpTargetVec, 1 - Math.exp(-dt * 12));
+            }
+
+            // Cámara justo por encima y algo retrasada respecto a la cabeza
+            camera.position.set(
+                fpCam.pos.x - fx * 0.6 + shX,
+                1.18 + Math.sin(time * 1.6) * 0.035 + shY,
+                fpCam.pos.z - fz * 0.6
+            );
+            camera.lookAt(
+                fpCam.pos.x + fx * 4.5,
+                0.32 + Math.sin(time * 1.1) * 0.05,
+                fpCam.pos.z + fz * 4.5
+            );
+        }
+
+        // Clic / toque sobre las teclas de giro (sólo primera persona)
+        function onPointerDown(e) {
+            if (viewMode !== 'fp' || !gameRunning || gamePaused || descending) return;
+            if (!raycaster || !renderer || snake.length === 0) return;
+            const keys = snake[0].userData.turnKeys;
+            if (!keys) return;
+
+            const rect = renderer.domElement.getBoundingClientRect();
+            pointerNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            pointerNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(new THREE.Vector2(pointerNDC.x, pointerNDC.y), camera);
+
+            const hits = raycaster.intersectObjects([keys.left, keys.right], true);
+            if (hits.length > 0) {
+                let obj = hits[0].object;
+                while (obj && !(obj.userData && obj.userData.isTurnKey)) obj = obj.parent;
+                if (obj) pressTurnKey(obj.userData.isTurnKey);
+            }
+        }
+
         function initThree() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x000510);
@@ -1081,6 +1303,10 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('gameCanvas').appendChild(renderer.domElement);
+
+            // Raycaster para pulsar las teclas de giro en primera persona
+            raycaster = new THREE.Raycaster();
+            renderer.domElement.addEventListener('pointerdown', onPointerDown);
 
             calculateGridSize();
 
@@ -1118,8 +1344,11 @@
             const aspect = window.innerWidth / window.innerHeight;
             const totalWidth = gridWidth * CONFIG.CELL_SIZE;
             const totalHeight = gridHeight * CONFIG.CELL_SIZE;
+            // El mapa ya no está forzosamente centrado en el origen: usar su centro real
+            const cx = gridOriginX + totalWidth / 2;
+            const cz = gridOriginZ + totalHeight / 2;
 
-            camera.fov = 55;
+            camera.fov = (viewMode === 'fp') ? FP_FOV : 55;
             const fov = camera.fov * (Math.PI / 180);
 
             let cameraHeight, cameraZ, lookAtY, lookAtZ;
@@ -1138,14 +1367,14 @@
                 lookAtZ = -totalHeight * 0.05;
             }
 
-            camera.position.set(0, cameraHeight, cameraZ);
-            camera.lookAt(0, lookAtY, lookAtZ);
+            camera.position.set(cx, cameraHeight, cz + cameraZ);
+            camera.lookAt(cx, lookAtY, cz + lookAtZ);
             camera.aspect = aspect;
             camera.updateProjectionMatrix();
 
             // Guardar posición base para el balanceo cinemático
-            camBase = { x: 0, y: cameraHeight, z: cameraZ, fov: camera.fov };
-            camLook = { x: 0, y: lookAtY, z: lookAtZ };
+            camBase = { x: cx, y: cameraHeight, z: cz + cameraZ, fov: camera.fov };
+            camLook = { x: cx, y: lookAtY, z: cz + lookAtZ };
         }
 
         function createBackground() {
@@ -1450,6 +1679,8 @@
             gridFloor = new THREE.Group();
             const totalWidth = gridWidth * CONFIG.CELL_SIZE;
             const totalHeight = gridHeight * CONFIG.CELL_SIZE;
+            const cx = gridOriginX + totalWidth / 2;
+            const cz = gridOriginZ + totalHeight / 2;
 
             const floorGeom = new THREE.PlaneGeometry(totalWidth, totalHeight);
             const floorMat = new THREE.ShaderMaterial({
@@ -1492,16 +1723,19 @@
             });
             const floor = new THREE.Mesh(floorGeom, floorMat);
             floor.rotation.x = -Math.PI / 2;
-            floor.position.y = -0.05;
+            floor.position.set(cx, -0.05, cz);
             floor.userData.isFloor = true;
             gridFloor.add(floor);
 
+            const minX = gridOriginX, maxX = gridOriginX + totalWidth;
+            const minZ = gridOriginZ, maxZ = gridOriginZ + totalHeight;
+
             const edgeGeom = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(-totalWidth/2, 0.01, -totalHeight/2),
-                new THREE.Vector3(totalWidth/2, 0.01, -totalHeight/2),
-                new THREE.Vector3(totalWidth/2, 0.01, totalHeight/2),
-                new THREE.Vector3(-totalWidth/2, 0.01, totalHeight/2),
-                new THREE.Vector3(-totalWidth/2, 0.01, -totalHeight/2)
+                new THREE.Vector3(minX, 0.01, minZ),
+                new THREE.Vector3(maxX, 0.01, minZ),
+                new THREE.Vector3(maxX, 0.01, maxZ),
+                new THREE.Vector3(minX, 0.01, maxZ),
+                new THREE.Vector3(minX, 0.01, minZ)
             ]);
             const edgeMat = new THREE.LineBasicMaterial({
                 color: 0x00ffff,
@@ -1514,10 +1748,10 @@
             gridFloor.add(edge);
 
             const corners = [
-                [-totalWidth/2, -totalHeight/2],
-                [totalWidth/2, -totalHeight/2],
-                [totalWidth/2, totalHeight/2],
-                [-totalWidth/2, totalHeight/2]
+                [minX, minZ],
+                [maxX, minZ],
+                [maxX, maxZ],
+                [minX, maxZ]
             ];
 
             corners.forEach((pos, i) => {
@@ -1560,12 +1794,77 @@
         }
 
         function gridToWorld(gx, gz) {
-            const totalWidth = gridWidth * CONFIG.CELL_SIZE;
-            const totalHeight = gridHeight * CONFIG.CELL_SIZE;
+            // Posición de mundo basada en el origen ANCLADO del mapa:
+            // al ampliar el mapa el origen no cambia, por lo que TODAS las
+            // celdas existentes (serpiente, obstáculos...) conservan su
+            // posición exacta en el mundo y su índice de rejilla.
             return {
-                x: (gx + 0.5) * CONFIG.CELL_SIZE - totalWidth / 2,
-                z: (gz + 0.5) * CONFIG.CELL_SIZE - totalHeight / 2
+                x: gridOriginX + (gx + 0.5) * CONFIG.CELL_SIZE,
+                z: gridOriginZ + (gz + 0.5) * CONFIG.CELL_SIZE
             };
+        }
+
+        // Tecla holográfica de giro colocada a un lateral de la cabeza.
+        // Sólo se ve y funciona en la vista de primera persona.
+        function createTurnKey(side) {
+            const isLeft = side === 'left';
+            const keyColor = isLeft ? 0x00ffff : 0xff40ff;
+
+            const key = new THREE.Group();
+
+            // Base de la tecla (disco brillante)
+            const baseMat = new THREE.MeshStandardMaterial({
+                color: keyColor, metalness: 0.5, roughness: 0.25,
+                emissive: keyColor, emissiveIntensity: 0.9
+            });
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.09, 20), baseMat);
+            key.add(base);
+
+            // Flecha direccional
+            const arrowMat = new THREE.MeshBasicMaterial({
+                color: 0xffffff, transparent: true, opacity: 0.95
+            });
+            const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.22, 14), arrowMat);
+            arrow.rotation.z = isLeft ? 0 : Math.PI;   // apunta hacia su lado
+            arrow.position.y = 0.14;
+            key.add(arrow);
+
+            // Aro luminoso
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: keyColor, transparent: true, opacity: 0.85,
+                blending: THREE.AdditiveBlending, depthWrite: false
+            });
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.028, 8, 28), ringMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.05;
+            key.add(ring);
+
+            // Halo brillante (brilla más que el resto de elementos)
+            const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+                map: glowTex,
+                color: keyColor,
+                transparent: true,
+                opacity: 0.55,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            }));
+            halo.scale.set(1.25, 1.25, 1);
+            halo.position.y = 0.1;
+            key.add(halo);
+
+            key.position.set(isLeft ? 0.85 : -0.85, 0.42, 0.1);
+            key.rotation.x = -0.45;
+            key.rotation.z = isLeft ? 0.25 : -0.25;
+            key.userData = {
+                isTurnKey: side,
+                baseMat: baseMat,
+                arrowMat: arrowMat,
+                ringMat: ringMat,
+                halo: halo,
+                pulse: 0
+            };
+            key.visible = (viewMode === 'fp');
+            return key;
         }
 
         function createSnakeSegment(gx, gz, index, totalLength) {
@@ -1575,6 +1874,7 @@
             const segmentColor = snakeColors[colorIndex];
             const tintMats = [];
             let headHalo = null;
+            let turnKeys = null;
             let ringMat = null;
             let ringBaseOp = 0;
 
@@ -1712,6 +2012,13 @@
                 headHalo.position.set(0, 0.28, 0);
                 headGroup.add(headHalo);
 
+                // Teclas de giro laterales (visibles sólo en primera persona)
+                const keyL = createTurnKey('left');
+                const keyR = createTurnKey('right');
+                headGroup.add(keyL);
+                headGroup.add(keyR);
+                turnKeys = { left: keyL, right: keyR };
+
                 group.add(headGroup);
 
             } else {
@@ -1755,6 +2062,7 @@
                 index: index,
                 tintMats: tintMats,
                 headHalo: headHalo,
+                turnKeys: turnKeys,
                 ringMat: ringMat,
                 ringBaseOp: ringBaseOp,
                 tinted: false
@@ -1854,6 +2162,9 @@
                         break;
                     }
                 }
+                if (quantumHole && quantumHole.userData.gridX === gx && quantumHole.userData.gridZ === gz) {
+                    valid = false;
+                }
                 attempts++;
             } while (!valid && attempts < 100);
 
@@ -1870,6 +2181,10 @@
             scene.add(group);
             nanobot = group;
 
+            // Vuelve el nanobot: restaurar su HUD y ocultar avisos del agujero
+            document.getElementById('nanobotTimer').classList.remove('hidden');
+            document.getElementById('holeHint').classList.add('hidden');
+
             // Charco de luz bajo el nanobot
             if (nanoPool) {
                 nanoPool.material.color.copy(nanobotColor);
@@ -1878,6 +2193,274 @@
 
             nanobotStartTime = Date.now();
             scheduleNanobotExpiry(CONFIG.NANOBOT_LIFETIME);
+        }
+
+        // ===== AGUJERO CUÁNTICO =====
+        // Sustituye al orbe al alcanzar el umbral de crecimiento: en lugar de
+        // ampliar el mapa automáticamente, se abre un agujero cuántico en el
+        // tablero. Al entrar en él, la serpiente desciende al PISO INFERIOR,
+        // donde el mapa es más grande (conservando el mapa actual intacto).
+        function createQuantumHole() {
+            clearQuantumHole();
+
+            const group = new THREE.Group();
+
+            // Horizonte de sucesos (disco negro absoluto)
+            const discMat = new THREE.MeshBasicMaterial({
+                color: 0x000000, side: THREE.DoubleSide
+            });
+            const disc = new THREE.Mesh(new THREE.CircleGeometry(0.52, 48), discMat);
+            disc.rotation.x = -Math.PI / 2;
+            disc.position.y = 0.03;
+            group.add(disc);
+
+            // Vórtice interior (anillo oscuro que gira)
+            const vortexMat = new THREE.MeshBasicMaterial({
+                color: 0x1a0b33, transparent: true, opacity: 0.9,
+                blending: THREE.AdditiveBlending, depthWrite: false
+            });
+            const vortex = new THREE.Mesh(new THREE.RingGeometry(0.18, 0.5, 40), vortexMat);
+            vortex.rotation.x = -Math.PI / 2;
+            vortex.position.y = 0.05;
+            group.add(vortex);
+
+            // Anillos de acreción (giran precesionando)
+            const swirl = new THREE.Group();
+            const ringDefs = [
+                { r: 0.62, tube: 0.055, color: 0x9d4dff, tilt: 0.22, speed: 1.6 },
+                { r: 0.50, tube: 0.035, color: 0x00d5ff, tilt: -0.3, speed: -2.3 },
+                { r: 0.78, tube: 0.022, color: 0xff5df1, tilt: 0.12, speed: 1.1 }
+            ];
+            const ringMeshes = [];
+            ringDefs.forEach(def => {
+                const mat = new THREE.MeshBasicMaterial({
+                    color: def.color, transparent: true, opacity: 0.85,
+                    blending: THREE.AdditiveBlending, depthWrite: false
+                });
+                const ring = new THREE.Mesh(new THREE.TorusGeometry(def.r, def.tube, 8, 40), mat);
+                ring.rotation.x = Math.PI / 2 + def.tilt;
+                ring.position.y = 0.08;
+                swirl.add(ring);
+                ringMeshes.push(ring);
+            });
+            group.add(swirl);
+
+            // Partículas espiralando hacia el interior
+            const orbiters = [];
+            for (let i = 0; i < 9; i++) {
+                const mat = new THREE.SpriteMaterial({
+                    map: glowTex,
+                    color: i % 3 === 0 ? 0xffffff : (i % 3 === 1 ? 0x9d4dff : 0x00d5ff),
+                    transparent: true, opacity: 0.85,
+                    blending: THREE.AdditiveBlending, depthWrite: false
+                });
+                const p = new THREE.Sprite(mat);
+                const sc = 0.14 + Math.random() * 0.16;
+                p.scale.set(sc, sc, 1);
+                p.userData = {
+                    angle: Math.random() * Math.PI * 2,
+                    radius: 0.35 + Math.random() * 0.75,
+                    speed: 1.4 + Math.random() * 1.8,
+                    y: 0.06 + Math.random() * 0.3
+                };
+                group.add(p);
+                orbiters.push(p);
+            }
+
+            // Halo de distorsión cuántica
+            const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+                map: glowTex,
+                color: 0x7b2bff,
+                transparent: true, opacity: 0.5,
+                blending: THREE.AdditiveBlending, depthWrite: false
+            }));
+            halo.scale.set(3.4, 3.4, 1);
+            halo.position.y = 0.25;
+            group.add(halo);
+
+            // Luz que tiñe el suelo alrededor
+            const holeLight = new THREE.PointLight(0x8a2be2, 1.6, 8, 2);
+            holeLight.position.y = 0.4;
+            group.add(holeLight);
+
+            // Colocación: celda libre lejos de la cabeza (nunca bajo la serpiente
+            // ni bajo obstáculos/nanobot)
+            let gx, gz, valid, attempts = 0;
+            do {
+                gx = Math.floor(Math.random() * gridWidth);
+                gz = Math.floor(Math.random() * gridHeight);
+                valid = true;
+
+                if (snake.length > 0) {
+                    const head = snake[0];
+                    const dist = Math.abs(head.userData.gridX - gx) + Math.abs(head.userData.gridZ - gz);
+                    if (dist < 4) valid = false;
+                }
+                for (const seg of snake) {
+                    if (seg.userData.gridX === gx && seg.userData.gridZ === gz) {
+                        valid = false;
+                        break;
+                    }
+                }
+                for (const obs of obstacles) {
+                    if (obs.userData.gridX === gx && obs.userData.gridZ === gz) {
+                        valid = false;
+                        break;
+                    }
+                }
+                if (nanobot && nanobot.userData.gridX === gx && nanobot.userData.gridZ === gz) {
+                    valid = false;
+                }
+                attempts++;
+            } while (!valid && attempts < 200);
+
+            const worldPos = gridToWorld(gx, gz);
+            group.position.set(worldPos.x, 0, worldPos.z);
+            group.userData = {
+                gridX: gx,
+                gridZ: gz,
+                isQuantumHole: true,
+                swirl: swirl,
+                vortex: vortex,
+                halo: halo,
+                light: holeLight,
+                orbiters: orbiters,
+                ringMeshes: ringMeshes,
+                bornTime: Date.now() * 0.001
+            };
+
+            scene.add(group);
+            quantumHole = group;
+
+            // Sin nanobot en juego: ocultar su HUD y avisar del agujero
+            document.getElementById('nanobotTimer').classList.add('hidden');
+            document.getElementById('holeHint').classList.remove('hidden');
+        }
+
+        function clearQuantumHole() {
+            if (quantumHole) {
+                scene.remove(quantumHole);
+                disposeObject(quantumHole);
+                quantumHole = null;
+            }
+            document.getElementById('holeHint').classList.add('hidden');
+        }
+
+        // La serpiente pisa el agujero: comienza el descenso al piso inferior
+        function enterQuantumHole(gx, gz) {
+            const w = gridToWorld(gx, gz);
+
+            createShockwave(w.x, w.z, 0x8a2be2, { speed: 16, decay: 1.1 });
+            createShockwave(w.x, w.z, 0x00d5ff, { speed: 24, decay: 1.5 });
+            createExplosion(w.x, 0.45, w.z, 0xb26bff, { count: 24 });
+            flashScreen(0x3d0a6e);
+
+            clearQuantumHole();
+
+            descending = true;
+            descendT = 0;
+            descendExpanded = false;
+            descendNanobot = false;
+            currentSpeed = baseSpeed;    // cortar el turbo durante la transición
+            fovKick = Math.max(fovKick, 0.7);
+        }
+
+        // ===== AMPLIACIÓN DEL MAPA (piso inferior) =====
+        // El mapa crece hacia la derecha y hacia abajo ANCLANDO el origen:
+        // las celdas actuales conservan su índice y su posición en el mundo,
+        // por lo que la serpiente, los obstáculos y el propio tablero NO se
+        // desplazan ni un solo cuadro.
+        function expandFloor() {
+            level++;
+
+            const levelUpEl = document.getElementById('levelUp');
+            levelUpEl.textContent = `▼ ¡PISO ${level}! ▼`;
+            levelUpEl.classList.remove('active');
+            void levelUpEl.offsetWidth;
+            levelUpEl.classList.add('active');
+            setTimeout(() => levelUpEl.classList.remove('active'), 1500);
+
+            const oldGridWidth = gridWidth;
+            const oldGridHeight = gridHeight;
+
+            calculateGridSize();
+            // Nunca encoger: el piso inferior siempre contiene al anterior
+            gridWidth = Math.max(gridWidth, oldGridWidth);
+            gridHeight = Math.max(gridHeight, oldGridHeight);
+            // gridOriginX / gridOriginZ NO se tocan: el mapa actual queda fijo
+            // y el crecimiento se añade por la derecha y por abajo.
+
+            createGrid();
+            updateCamera();
+
+            // Obstáculos nuevos sólo en la zona recién añadida
+            for (let i = 0; i < CONFIG.OBSTACLE_PER_LEVEL; i++) {
+                createObstacleInNewZone(oldGridWidth, oldGridHeight);
+            }
+
+            const c = gridCenterWorld();
+            createShockwave(c.x, c.z, 0x66ffff, { speed: 30, decay: 1.1 });
+            createExplosion(c.x, 0.6, c.z, 0x00ffff, { count: 22 });
+
+            updateUI();
+        }
+
+        // Avanza la animación de descenso de piso (llamado desde animate)
+        function updateDescend(dt) {
+            if (gamePaused) return;
+
+            descendT += dt;
+            const k = descendT / DESCEND_DURATION;
+
+            // Fase 1: la serpiente es succionada por el agujero
+            if (k < 0.45) {
+                const suck = Math.min(1, k / 0.45);
+                snake.forEach((seg, i) => {
+                    const d = Math.max(0, Math.min(1, suck * 1.3 - i * 0.03));
+                    const e = d * d * (3 - 2 * d);
+                    seg.scale.setScalar(Math.max(0.02, 1 - e));
+                    seg.position.y = -0.95 * e;
+                });
+            }
+
+            // Fase 2: atravesamos el vórtice -> ampliar el mapa en la oscuridad
+            if (k >= 0.45 && !descendExpanded) {
+                descendExpanded = true;
+                expandFloor();
+                fovKick = Math.max(fovKick, 1);
+            }
+
+            // Fundido de pantalla (sube al cruzar, baja al aterrizar)
+            const ov = k < 0.5
+                ? Math.max(0, Math.min(1, (k - 0.3) / 0.18))
+                : Math.max(0, 1 - (k - 0.55) / 0.35);
+            descendEl.style.opacity = String(Math.max(0, Math.min(1, ov)));
+
+            // Fase 3: la serpiente aterriza en el piso inferior, en SU MISMA celda
+            if (k >= 0.62) {
+                const pop = Math.min(1, (k - 0.62) / 0.38);
+                snake.forEach((seg, i) => {
+                    const d = Math.max(0, Math.min(1, pop * 1.35 - i * 0.035));
+                    const e = d * d * (3 - 2 * d);
+                    seg.scale.setScalar(Math.max(0.02, e));
+                    seg.position.y = -0.95 * (1 - e);
+                });
+                if (!descendNanobot && k > 0.8) {
+                    descendNanobot = true;
+                    createNanobot();
+                }
+            }
+
+            if (k >= 1) {
+                descending = false;
+                snake.forEach(seg => {
+                    seg.scale.setScalar(1);
+                    seg.position.y = 0;
+                });
+                descendEl.style.opacity = '0';
+                lastMoveTime = Date.now();
+                updateUI();
+            }
         }
 
         // Charco de luz roja bajo los obstáculos
@@ -1952,6 +2535,9 @@
                 if (nanobot && nanobot.userData.gridX === gx && nanobot.userData.gridZ === gz) {
                     valid = false;
                 }
+                if (quantumHole && quantumHole.userData.gridX === gx && quantumHole.userData.gridZ === gz) {
+                    valid = false;
+                }
                 attempts++;
             } while (!valid && attempts < 100);
 
@@ -1969,8 +2555,16 @@
             obstacles.push(group);
         }
 
-        function createObstacleInBottomZone(oldHeight, deltaHeight) {
-            if (deltaHeight <= 0) return;
+        // Obstáculo colocado EXCLUSIVAMENTE en la zona nueva del mapa (la franja
+        // derecha y la franja inferior añadidas al ampliar). Así los obstáculos
+        // nuevos jamás pueden aparecer sobre el mapa actual ni cerca de la serpiente.
+        function createObstacleInNewZone(oldWidth, oldHeight) {
+            const newCols = Math.max(0, gridWidth - oldWidth);
+            const newRows = Math.max(0, gridHeight - oldHeight);
+            const cellsRight = newCols * gridHeight;
+            const cellsBottom = newRows * gridWidth;
+            const totalNewCells = cellsRight + cellsBottom;
+            if (totalNewCells <= 0) return;   // el mapa no creció: no hay zona nueva
 
             const group = new THREE.Group();
 
@@ -2000,8 +2594,15 @@
 
             let gx, gz, valid, attempts = 0;
             do {
-                gx = Math.floor(Math.random() * gridWidth);
-                gz = oldHeight + Math.floor(Math.random() * deltaHeight);
+                // Celda aleatoria dentro de la zona nueva (forma de L:
+                // columnas derechas nuevas + filas inferiores nuevas)
+                if (Math.random() * totalNewCells < cellsRight) {
+                    gx = oldWidth + Math.floor(Math.random() * newCols);
+                    gz = Math.floor(Math.random() * gridHeight);
+                } else {
+                    gx = Math.floor(Math.random() * gridWidth);
+                    gz = oldHeight + Math.floor(Math.random() * newRows);
+                }
                 valid = true;
 
                 for (const seg of snake) {
@@ -2015,6 +2616,12 @@
                         valid = false;
                         break;
                     }
+                }
+                if (nanobot && nanobot.userData.gridX === gx && nanobot.userData.gridZ === gz) {
+                    valid = false;
+                }
+                if (quantumHole && quantumHole.userData.gridX === gx && quantumHole.userData.gridZ === gz) {
+                    valid = false;
                 }
                 attempts++;
             } while (!valid && attempts < 100);
@@ -2031,42 +2638,6 @@
 
             scene.add(group);
             obstacles.push(group);
-        }
-
-        function createObstacleAt(gx, gz) {
-            const group = new THREE.Group();
-
-            const height = 1 + Math.random() * 1.5;
-            const obstacleGeom = new THREE.OctahedronGeometry(0.35, 0);
-            obstacleGeom.scale(1, height, 1);
-
-            const obstacleMat = new THREE.MeshStandardMaterial({
-                color: 0xff3300, metalness: 0.8, roughness: 0.2,
-                emissive: 0xff2200, emissiveIntensity: 0.55
-            });
-            const obstacle = new THREE.Mesh(obstacleGeom, obstacleMat);
-            obstacle.position.y = height * 0.35;
-            group.add(obstacle);
-
-            const ringGeom = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
-            const ringMat = new THREE.MeshBasicMaterial({
-                color: 0xff0000, transparent: true, opacity: 0.6,
-                blending: THREE.AdditiveBlending, depthWrite: false
-            });
-            const ring = new THREE.Mesh(ringGeom, ringMat);
-            ring.rotation.x = Math.PI / 2;
-            ring.position.y = 0.05;
-            group.add(ring);
-
-            addObstacleGlow(group);
-
-            const worldPos = gridToWorld(gx, gz);
-            group.position.set(worldPos.x, 0, worldPos.z);
-            group.userData.gridX = gx;
-            group.userData.gridZ = gz;
-
-            scene.add(group);
-            return group;
         }
 
         // Explosión de chispas brillantes (spheres => sprites aditivos con textura de brillo)
@@ -2200,15 +2771,22 @@
             if (nanobot) { scene.remove(nanobot); disposeObject(nanobot); }
             nanobot = null;
             if (nanobotTimer) clearTimeout(nanobotTimer);
+            clearQuantumHole();
 
             // Reiniciar estado de efectos
             eatWave = null;
             headFlash = 0;
             fovKick = 0;
             shakeTime = 0;
+            descending = false;
+            descendT = 0;
+            descendExpanded = false;
+            descendNanobot = false;
+            if (descendEl) descendEl.style.opacity = '0';
             if (snakeGlowPts) snakeGlowPts.geometry.setDrawRange(0, 0);
             if (headPool) headPool.visible = false;
             if (nanoPool) nanoPool.visible = false;
+            fpCam.ready = false;
 
             score = 0;
             level = 1;
@@ -2218,9 +2796,11 @@
             gamePaused = false;
 
             calculateGridSize();
+            centerGrid();
             createGrid();
             updateCamera();
             updateUI();
+            updateTurnKeysVisibility();
 
             const startX = Math.floor(gridWidth / 2);
             const startZ = Math.floor(gridHeight / 2);
@@ -2240,7 +2820,7 @@
         }
 
         function updateSnake() {
-            if (gamePaused) return;
+            if (gamePaused || descending) return;
 
             const now = Date.now();
             if (now - lastMoveTime < currentSpeed) return;
@@ -2288,8 +2868,11 @@
                 nanobot = null;
                 clearTimeout(nanobotTimer);
 
+                // Al alcanzar el umbral, el orbe se sustituye por un AGUJERO
+                // CUÁNTICO: habrá que entrar en él para bajar al piso inferior
+                // (donde el mapa se amplía conservando el actual intacto).
                 if (score % CONFIG.GROWTH_THRESHOLD === 0) {
-                    levelUp();
+                    createQuantumHole();
                 } else {
                     createNanobot();
                 }
@@ -2316,74 +2899,11 @@
             else if (direction.y === 1) snake[0].rotation.y = 0;
 
             document.getElementById('length').textContent = snake.length;
-        }
 
-        function levelUp() {
-            level++;
-
-            const levelUpEl = document.getElementById('levelUp');
-            levelUpEl.textContent = `¡NIVEL ${level}!`;
-            levelUpEl.classList.add('active');
-            setTimeout(() => levelUpEl.classList.remove('active'), 1500);
-
-            createShockwave(0, 0, 0x66ffff, { speed: 30, decay: 1.1 });
-            createExplosion(0, 0.6, 0, 0x00ffff, { count: 22 });
-
-            const snakeGridPositions = snake.map(seg => ({
-                gx: seg.userData.gridX,
-                gz: seg.userData.gridZ
-            }));
-
-            const oldGridWidth = gridWidth;
-            const oldGridHeight = gridHeight;
-
-            calculateGridSize();
-
-            const deltaWidth = gridWidth - oldGridWidth;
-            const deltaHeight = gridHeight - oldGridHeight;
-
-            const offsetX = Math.floor(deltaWidth / 2);
-            const offsetZ = 0;
-
-            createGrid();
-            updateCamera();
-
-            snake.forEach(seg => { scene.remove(seg); disposeObject(seg); });
-            snake = [];
-
-            snakeGridPositions.forEach((pos, i) => {
-                const newX = pos.gx + offsetX;
-                const newZ = pos.gz;
-                snake.push(createSnakeSegment(newX, newZ, i, snakeGridPositions.length));
-            });
-
-            if (direction.x === 1) snake[0].rotation.y = Math.PI / 2;
-            else if (direction.x === -1) snake[0].rotation.y = -Math.PI / 2;
-            else if (direction.y === -1) snake[0].rotation.y = Math.PI;
-            else if (direction.y === 1) snake[0].rotation.y = 0;
-
-            const obstacleGridPositions = obstacles.map(obs => ({
-                gx: obs.userData.gridX,
-                gz: obs.userData.gridZ
-            }));
-
-            obstacles.forEach(obs => { scene.remove(obs); disposeObject(obs); });
-            obstacles = [];
-
-            obstacleGridPositions.forEach(pos => {
-                const newGx = pos.gx + offsetX;
-                const newGz = pos.gz;
-
-                const group = createObstacleAt(newGx, newGz);
-                if (group) obstacles.push(group);
-            });
-
-            for (let i = 0; i < CONFIG.OBSTACLE_PER_LEVEL; i++) {
-                createObstacleInBottomZone(oldGridHeight, deltaHeight);
+            // ¿La cabeza ha entrado en el agujero cuántico? -> bajar de piso
+            if (quantumHole && quantumHole.userData.gridX === newX && quantumHole.userData.gridZ === newZ) {
+                enterQuantumHole(newX, newZ);
             }
-
-            createNanobot();
-            document.getElementById('level').textContent = level;
         }
 
         function gameOver() {
@@ -2588,6 +3108,9 @@
                 updateTimerDisplay();
             }
 
+            // Descenso por el agujero cuántico (transición de piso)
+            if (descending) updateDescend(dt);
+
             // Animate background
             scene.children.forEach(child => {
                 if (child.userData.isBackground && child.material.uniforms) {
@@ -2653,6 +3176,33 @@
                 nanoPool.visible = false;
             }
 
+            // Animate quantum hole (vórtice girando, partículas espiralando)
+            if (quantumHole) {
+                const data = quantumHole.userData;
+                const age = time - data.bornTime;
+
+                // Apertura: el agujero se abre al aparecer
+                const openK = Math.max(0, Math.min(1, age / 0.6));
+                const openE = openK * openK * (3 - 2 * openK);
+                quantumHole.scale.setScalar(Math.max(0.02, openE));
+
+                const pul = 0.5 + 0.5 * Math.sin(time * 3.2);
+                data.swirl.rotation.y += 1.4 * dt;
+                data.vortex.scale.setScalar(1 + pul * 0.12);
+                data.halo.material.opacity = (0.40 + 0.18 * pul) * openE;
+                const hs = 3.2 + pul * 0.5;
+                data.halo.scale.set(hs, hs, 1);
+                data.light.intensity = (1.35 + 0.55 * pul) * openE;
+
+                data.orbiters.forEach(p => {
+                    const od = p.userData;
+                    od.angle += od.speed * dt * 2;
+                    od.radius -= 0.09 * dt;                       // espiral hacia dentro
+                    if (od.radius <= 0.24) od.radius = 0.9 + Math.random() * 0.4;
+                    p.position.set(Math.cos(od.angle) * od.radius, od.y, Math.sin(od.angle) * od.radius);
+                });
+            }
+
             // Animate obstacles
             obstacles.forEach((obs, i) => {
                 if (obs.children[0]) obs.children[0].rotation.y += 0.01 * (dt * 60);
@@ -2688,14 +3238,30 @@
                             const glowScale = 1 + Math.sin(time * 8) * 0.3;
                             child.scale.setScalar(glowScale);
                         }
+
+                        // Teclas de giro (1ª persona): latido constante + destello al pulsar
+                        if (child.userData && child.userData.isTurnKey) {
+                            const ud = child.userData;
+                            const phase = ud.isTurnKey === 'left' ? 0 : Math.PI;
+                            ud.pulse = Math.max(0, (ud.pulse || 0) - dt * 2.6);
+                            const beat = 0.5 + 0.5 * Math.sin(time * 4 + phase);
+                            ud.baseMat.emissiveIntensity = 0.8 + beat * 0.8 + ud.pulse * 1.6;
+                            ud.ringMat.opacity = 0.6 + beat * 0.35 + ud.pulse * 0.4;
+                            ud.halo.material.opacity = 0.42 + beat * 0.22 + ud.pulse * 0.45;
+                            const ksc = 1 + ud.pulse * 0.3;
+                            child.scale.set(ksc, ksc, ksc);
+                        }
                     });
                 }
 
-                snake.forEach((seg, i) => {
-                    if (i > 0) {
-                        seg.position.y = Math.sin(time * 5 + i * 0.4) * 0.05;
-                    }
-                });
+                // Balanceo del cuerpo (suspendido durante el descenso de piso)
+                if (!descending) {
+                    snake.forEach((seg, i) => {
+                        if (i > 0) {
+                            seg.position.y = Math.sin(time * 5 + i * 0.4) * 0.05;
+                        }
+                    });
+                }
             }
 
             // Onda de color de la serpiente + brillos del suelo
@@ -2785,12 +3351,18 @@
                 shY = (Math.random() - 0.5) * s;
                 shakeTime -= dt;
             }
-            camera.position.set(
-                camBase.x + Math.sin(time * 0.5) * swayAmp + shX,
-                camBase.y + Math.sin(time * 0.37 + 1.3) * swayAmp * 0.55 + shY,
-                camBase.z + Math.cos(time * 0.43) * swayAmp * 0.4
-            );
-            camera.lookAt(camLook.x, camLook.y, camLook.z);
+
+            if (viewMode === 'fp') {
+                // Primera persona: cámara sobre la cabeza de la serpiente
+                updateFirstPersonCamera(dt, time, shX, shY);
+            } else {
+                camera.position.set(
+                    camBase.x + Math.sin(time * 0.5) * swayAmp + shX,
+                    camBase.y + Math.sin(time * 0.37 + 1.3) * swayAmp * 0.55 + shY,
+                    camBase.z + Math.cos(time * 0.43) * swayAmp * 0.4
+                );
+                camera.lookAt(camLook.x, camLook.y, camLook.z);
+            }
 
             if (fovKick > 0.001) {
                 camera.fov = camBase.fov + fovKick * 5.5;
@@ -2838,6 +3410,12 @@
             // Tecla B: activar/desactivar el bloom (efectos) manualmente
             if (e.key.toLowerCase() === 'b') {
                 if (composer) useBloom = !useBloom;
+                return;
+            }
+
+            // Tecla V: alternar entre vista cenital y primera persona
+            if (e.key.toLowerCase() === 'v') {
+                toggleView();
                 return;
             }
 
@@ -2956,6 +3534,9 @@
         // Pause Menu
         document.getElementById('pauseBtn').addEventListener('click', pauseGame);
 
+        // Botón de cambio de vista (cenital / primera persona)
+        document.getElementById('viewBtn').addEventListener('click', toggleView);
+
         document.getElementById('pauseSpeedSlider').addEventListener('input', (e) => {
             const val = parseInt(e.target.value);
             updateSpeedDisplay(val, 'pauseSpeedValueDisplay');
@@ -2972,6 +3553,8 @@
         document.getElementById('btnExitToMenu').addEventListener('click', () => {
             gameRunning = false;
             gamePaused = false;
+            descending = false;
+            if (descendEl) descendEl.style.opacity = '0';
             hideGameUI();
             showMenu('mainMenu');
         });
@@ -3063,8 +3646,10 @@
 
         // ===== INITIALIZATION =====
         flashEl = document.getElementById('flashOverlay');
+        descendEl = document.getElementById('descendOverlay');
         initThree();
         calculateGridSize();
+        centerGrid();
         updateCamera();
         loadSavedSpeed();
         updateRecordsList();
