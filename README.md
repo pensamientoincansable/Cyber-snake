@@ -27,6 +27,15 @@ Pulsa **V** o el botón **👁** del HUD para alternar entre la vista cenital ha
 - **Nanobot con cuenta atrás visible**: parpadea cada vez más rápido cuando está a punto de expirar.
 - Animaciones basadas en *delta-time* (velocidad consistente en cualquier pantalla) y liberación de memoria de geometrías/materiales al recrear la serpiente.
 
+## 🕹️ Más juegos 3D de Juegos π
+
+En la **parte inferior del menú principal** hay un acceso directo a la galería de más juegos 3D de **Juegos π**:
+
+**[https://pensamientoincansable.github.io/Juegos-3D/](https://pensamientoincansable.github.io/Juegos-3D/)**
+
+- Es un enlace real (`<a href>` con `target="_blank"` y `rel="noopener noreferrer"`): se abre en una **pestaña nueva**, así que la partida no se pierde y funciona también con teclado, "abrir en pestaña nueva" o clic central.
+- El menú principal es ahora desplazable y se compacta en pantallas de poca altura, para que este acceso quede siempre a la vista (incluido el móvil en horizontal).
+
 ## Controles
 
 - **↑ ↓ ← →** o **W A S D** para mover

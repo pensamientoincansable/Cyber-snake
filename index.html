@@ -171,9 +171,20 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            /* 'safe center' evita que el primer elemento quede cortado
+               cuando el contenido no cabe (pantallas bajas) */
+            justify-content: safe center;
             align-items: center;
             z-index: 200;
             padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+        }
+
+        .menu-screen > * {
+            flex-shrink: 0;
         }
 
         .menu-screen.hidden {
@@ -262,6 +273,101 @@
             padding: 10px 25px;
             font-size: clamp(10px, 2.5vw, 14px);
             min-width: 150px;
+        }
+
+        /* Acceso a la galería de más juegos 3D de Juegos π (parte inferior del menú) */
+        .more-games-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 26px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(0, 255, 255, 0.18);
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .more-games-label {
+            color: rgba(255, 255, 255, 0.45);
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(9px, 2.2vw, 11px);
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .more-games-label span {
+            color: #0ff;
+        }
+
+        .more-games-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 13px 26px;
+            border: 2px dashed rgba(255, 0, 255, 0.45);
+            border-radius: 30px;
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.10), rgba(0, 255, 255, 0.10));
+            color: #f0f;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: clamp(11px, 3vw, 16px);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            /* El touch-action: none global no debe retrasar el toque del enlace */
+            touch-action: manipulation;
+            transition: all 0.3s ease;
+            animation: moreGamesPulse 3s ease-in-out infinite;
+        }
+
+        .more-games-link:hover,
+        .more-games-link:active,
+        .more-games-link:focus-visible {
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.28), rgba(0, 255, 255, 0.28));
+            box-shadow: 0 0 28px rgba(255, 0, 255, 0.45);
+            color: #fff;
+            outline: none;
+            transform: scale(1.04);
+        }
+
+        .more-games-icon {
+            font-size: 1.15em;
+            filter: drop-shadow(0 0 8px rgba(255, 0, 255, 0.8));
+        }
+
+        .more-games-arrow {
+            font-size: 0.95em;
+            opacity: 0.75;
+        }
+
+        @keyframes moreGamesPulse {
+            0%, 100% { border-color: rgba(255, 0, 255, 0.45); }
+            50% { border-color: rgba(0, 255, 255, 0.55); }
+        }
+
+        /* En pantallas de poca altura se compacta el menú para que
+           el acceso a Juegos 3D siga siendo visible sin recortes. */
+        @media (max-height: 760px) {
+            #mainMenu .subtitle { margin-bottom: 20px; }
+            #mainMenu .menu-btn { padding: 11px 32px; margin: 5px 0; }
+            #mainMenu .controls-info { margin-top: 14px; line-height: 1.7; }
+            #mainMenu .more-games-wrap { margin-top: 14px; padding-top: 12px; }
+        }
+
+        @media (max-height: 620px) {
+            #mainMenu .title { font-size: clamp(22px, 6vw, 36px); }
+            #mainMenu .subtitle { margin-bottom: 10px; letter-spacing: 3px; }
+            #mainMenu .menu-btn { padding: 8px 24px; margin: 4px 0; min-width: 210px; }
+            #mainMenu .controls-info { margin-top: 8px; font-size: 10px; line-height: 1.45; }
+            #mainMenu .more-games-wrap { margin-top: 8px; padding-top: 8px; }
+            #mainMenu .more-games-link { padding: 9px 16px; }
         }
 
         /* Selector de velocidad */
@@ -774,6 +880,21 @@
             <span>V</span> o <span>👁</span> para cambiar a vista en 1ª persona<br>
             <span>◄ ►</span> teclas laterales de la cabeza para girar (sólo 1ª persona)<br>
             <span>🌀 AGUJERO CUÁNTICO</span> entra en él para bajar al piso inferior
+        </div>
+
+        <!-- Acceso a más juegos 3D de Juegos π -->
+        <div class="more-games-wrap">
+            <div class="more-games-label">Juegos <span>π</span> · Galería</div>
+            <a class="more-games-link"
+               id="btnMoreGames"
+               href="https://pensamientoincansable.github.io/Juegos-3D/"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="Más juegos 3D de Juegos π (se abre en una pestaña nueva)">
+                <span class="more-games-icon" aria-hidden="true">🕹️</span>
+                <span class="more-games-text">Más juegos 3D</span>
+                <span class="more-games-arrow" aria-hidden="true">↗</span>
+            </a>
         </div>
     </div>
 
@@ -3618,6 +3739,9 @@
         }, { passive: false });
 
         document.addEventListener('touchmove', (e) => {
+            // Dentro de los menús se permite desplazarse (contenido alto en
+            // pantallas bajas); en el juego se sigue bloqueando el scroll.
+            if (e.target && typeof e.target.closest === 'function' && e.target.closest('.menu-screen')) return;
             e.preventDefault();
         }, { passive: false });
 
